@@ -29,27 +29,24 @@ def archiveurl(url):
     raw = f.read().decode('utf-8')
     if '{"archived_snapshots":{}}' in raw:
         #not available, archive it
-        print('Archiving URL',url)
+        #print('Archiving URL',url)
         prefix2 = 'https://web.archive.org/save/'
         saveurl = prefix2 + url
         try:
             f = urllib.request.urlopen(saveurl)
             raw = f.read().decode('utf-8')
-            return 'https://web.archive.org/web/*/%s' % (url)
+            print('Archived at https://web.archive.org/web/*/%s' % (url))
         except:
-            print('URL 404')
-            return 'https://web.archive.org/web/*/%s' % (url)
+            print('URL 404 archived at https://web.archive.org/web/*/%s' % (url))
     else:
-        return 'https://web.archive.org/web/*/'+url
+        print('Previously archived at https://web.archive.org/web/*/%s' % (url))
         #print(raw)
-    return ''
 
 def archivepanoramio(i):
     time.sleep(1)
-    print('==', i, '==')
+    #print('==', i, '==')
     url = 'http://www.panoramio.com/photo/%s' % (i)
-    status = archiveurl(url)
-    print(status)
+    archiveurl(url)
 
 def main():
     start = int(sys.argv[1])
