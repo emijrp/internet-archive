@@ -36,10 +36,13 @@ def archiveurl(url='', force=False):
                 f = urllib.request.urlopen(saveurl)
                 raw = f.read().decode('utf-8')
                 print('Archived at https://web.archive.org/web/*/%s' % (url))
+                return 'ok'
             except:
                 print('URL 404 archived at https://web.archive.org/web/*/%s' % (url))
+                return '404'
         else:
             print('Previously archived at https://web.archive.org/web/*/%s' % (url))
+            return 'previously'
             #print(raw)
 
 def main():
@@ -53,8 +56,18 @@ def main():
         if 'force' in sys.argv[2:]:
             force = True
     
+    ok = 0
+    e404 = 0
+    previously = 0
     for url in urls:
-        archiveurl(url, force=force)
+        status = archiveurl(url, force=force)
+        if status == 'ok':
+            ok += 1
+        elif status == '404':
+            e404 += 1
+        elif status == 'previously':
+            previously += 1
+    print('ok=%d, e404=%d, previously=%d' % (ok, e404, previously))
         
 if __name__ == '__main__':
     main()
