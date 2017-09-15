@@ -25,8 +25,16 @@ def archiveurl(url='', force=False):
         #check if available in IA
         prefix = 'https://archive.org/wayback/available?url='
         checkurl = prefix + url
-        f = urllib.request.urlopen(checkurl)
-        raw = f.read().decode('utf-8')
+        retry = True
+        while retry:
+            try:
+                f = urllib.request.urlopen(checkurl)
+                raw = f.read().decode('utf-8')
+                retry = False
+            except:
+                retry = True
+                time.sleep(10)
+        
         if '{"archived_snapshots":{}}' in raw or force:
             #not available, archive it
             #print('Archiving URL',url)
