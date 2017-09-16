@@ -20,22 +20,33 @@ import sys
 import time
 import urllib.request
 
+def getURL(url=''):
+    raw = ''
+    req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
+    try:
+        raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
+    except:
+        sleep = 10 # seconds
+        maxsleep = 100
+        while sleep <= maxsleep:
+            print('Error while retrieving: %s' % (url))
+            print('Retry in %s seconds...' % (sleep))
+            time.sleep(sleep)
+            try:
+                raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
+            except:
+                pass
+            sleep = sleep * 2
+    return raw
+
 def archiveurl(url='', force=False):
     if url:
         #check if available in IA
         prefix = 'https://archive.org/wayback/available?url='
         checkurl = prefix + url
-        retry = True
-        while retry:
-            try:
-                f = urllib.request.urlopen(checkurl)
-                raw = f.read().decode('utf-8')
-                retry = False
-            except:
-                retry = True
-                time.sleep(10)
-        
-        if '{"archived_snapshots":{}}' in raw or force:
+        raw = getURL(url=checkurl)
+        #print(raw)
+        if '"archived_snapshots": {}' in raw or force:
             #not available, archive it
             #print('Archiving URL',url)
             prefix2 = 'https://web.archive.org/save/'
@@ -53,6 +64,19 @@ def archiveurl(url='', force=False):
             return 'previously'
             #print(raw)
 
+def stats(statuses=[]):
+    ok = 0
+    e404 = 0
+    previously = 0
+    for status in statuses:
+        if status == 'ok':
+            ok += 1
+        elif status == '404':
+            e404 += 1
+        elif status == 'previously':
+            previously += 1
+    print('ok=%d, e404=%d, previously=%d' % (ok, e404, previously))
+
 def main():
     urls = []
     filename = sys.argv[1]
@@ -64,18 +88,11 @@ def main():
         if 'force' in sys.argv[2:]:
             force = True
     
-    ok = 0
-    e404 = 0
-    previously = 0
+    statuses = []
     for url in urls:
         status = archiveurl(url, force=force)
-        if status == 'ok':
-            ok += 1
-        elif status == '404':
-            e404 += 1
-        elif status == 'previously':
-            previously += 1
-    print('ok=%d, e404=%d, previously=%d' % (ok, e404, previously))
+        statuses.append(status)
+    stats(statuses=statuses)
         
 if __name__ == '__main__':
     main()
