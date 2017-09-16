@@ -24,7 +24,14 @@ def getURL(url=''):
     raw = ''
     req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
     try:
-        raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
+        raw = urllib.request.urlopen(req).read()
+        try:
+            raw = raw.strip().decode('utf-8')
+        except:
+            try:
+                raw = raw.strip().decode('latin-1')
+            except:
+                pass
     except:
         sleep = 10 # seconds
         maxsleep = 100
