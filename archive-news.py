@@ -32,8 +32,25 @@ def radiopuertofm():
             statuses.append(status)
     stats(statuses=statuses)
 
+def sanasy():
+    statuses = []
+    for i in range(0, 10000):
+        url = 'http://www.sana.sy/es/?s=a&paged=' + str(i)
+        raw = getURL(url=url)
+        if '<h2 class="post-title">Not Found</h2>' in raw or '404 :(' in raw:
+            break
+        urls = re.findall(r'(?im)<h2 class="post-box-title">\s*<a href="([^<>]+?)">', raw)
+        if not urls:
+            break
+        archiveurl(url=url)
+        for url in urls:
+            status = archiveurl(url=url)
+            statuses.append(status)
+    stats(statuses=statuses)
+
 def main():
-    radiopuertofm()
+    #radiopuertofm()
+    sanasy()
 
 if __name__ == '__main__':
     main()
