@@ -39,10 +39,14 @@ def getURL(url=''):
             print('Error while retrieving: %s' % (url))
             print('Retry in %s seconds...' % (sleep))
             time.sleep(sleep)
+            raw = urllib.request.urlopen(req).read()
             try:
-                raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
+                raw = raw.strip().decode('utf-8')
             except:
-                pass
+                try:
+                    raw = raw.strip().decode('latin-1')
+                except:
+                    pass
             sleep = sleep * 2
     return raw
 
