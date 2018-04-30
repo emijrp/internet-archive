@@ -15,11 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 from archive import *
 
 def main():
     statuses = []
-    for i in range(1, 40000000):
+    start = int(sys.argv[1])
+    for i in range(start, 40000000):
         url = 'https://www.wikidata.org/wiki/Q' + str(i)
         if i % 10000 == 0:
             statuses = []
