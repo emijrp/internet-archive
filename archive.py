@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import re
 import sys
 import time
@@ -74,6 +75,10 @@ def archiveurl(url='', force=False):
             print('Previously archived at https://web.archive.org/web/*/%s' % (url))
             return 'previously'
             #print(raw)
+
+def archivevideoytdl(url='', filename=''):
+    if url and filename:
+        os.system('python youtube-dl %s -o %s --write-description --write-info-json --write-thumbnail' % (url, filename))
 
 def stats(statuses=[]):
     ok = 0
