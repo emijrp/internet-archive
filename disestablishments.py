@@ -17,6 +17,7 @@
 
 import datetime
 import re
+import sys
 import time
 import urllib.parse
 import urllib.request
@@ -93,8 +94,14 @@ def main():
     enwpsite = pywikibot.Site('en', 'wikipedia')
     atsite = pywikibot.Site('archiveteam', 'archiveteam')
     
+    year1 = 2015 #datetime.datetime.now().year
+    year2 = 2020
+    if len(sys.argv) >= 2:
+        year1 = int(sys.argv[1])
+        year2 = int(sys.argv[2])
+    
     start = ''
-    years = range(2015, 2020) #datetime.datetime.now().year
+    years = range(year1, year2) 
     limit = 100
     
     for year in years:
@@ -124,7 +131,10 @@ def main():
                     cats2.append(cat)
             cats = cats2
             
-            item = pywikibot.ItemPage.fromPage(page)
+            try:
+                item = pywikibot.ItemPage.fromPage(page)
+            except:
+                continue
             q = str(item).split(':')[1].split(']')[0]
             print(wtitle, item)
             itemcontent = item.get()
