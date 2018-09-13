@@ -24,27 +24,7 @@ import urllib.request
 import pywikibot
 import pywikibot.pagegenerators as pagegenerators
 
-def getURL(url=''):
-    raw = ''
-    req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0' })
-    try:
-        raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
-    except:
-        try:
-            raw = urllib.request.urlopen(req).read().strip().decode('latin-1')
-        except:
-            sleep = 10 # seconds
-            maxsleep = 0
-            while sleep <= maxsleep:
-                print('Error while retrieving: %s' % (url))
-                print('Retry in %s seconds...' % (sleep))
-                time.sleep(sleep)
-                try:
-                    raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
-                except:
-                    pass
-                sleep = sleep * 2
-    return raw
+from archiveteamfun import *
 
 def cleanwiki(wtext):
     wtext = re.sub(r"(?im)<!--.*?-->", r"", wtext)
@@ -66,43 +46,19 @@ def getIntro(wtext, wtitle):
         intro = ''
     return cleanwiki(intro)
 
-def getArchiveBotViewer(url=''):
-    if url and '//' in url:
-        domain = url.split('//')[1].split('/')[0]
-        viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
-        raw = getURL(url=viewerurl)
-        if raw and '</form>' in raw:
-            raw = raw.split('</form>')[1]
-        else:
-            return False, viewerurl
-        if re.search(r'No search results', raw):
-            return False, viewerurl
-        else:
-            if len(url.split(domain)[1]) > 1: #domain.com/more
-                if re.search(r'(?im)(%s)' % (url), raw):
-                    return True, viewerurl
-                else:
-                    return False, viewerurl
-            elif re.search(r'(?im)(%s)' % (domain), raw):
-                return True, viewerurl
-            else:
-                return False, viewerurl
-    else:
-        return False, 'https://archive.fart.website/archivebot/viewer/'
-
 def main():
     enwpsite = pywikibot.Site('en', 'wikipedia')
     atsite = pywikibot.Site('archiveteam', 'archiveteam')
     
-    year1 = 2015 #datetime.datetime.now().year
-    year2 = 2020
+    year1 = 2015
+    year2 = datetime.datetime.now().year + 1
     if len(sys.argv) >= 2:
         year1 = int(sys.argv[1])
         year2 = int(sys.argv[2])
     
     start = ''
-    years = range(year1, year2) 
-    limit = 100
+    years = range(year1, year2+1) 
+    limit = 1000
     
     for year in years:
         category = pywikibot.Category(enwpsite, "Category:%s disestablishments" % (year))
@@ -110,7 +66,6 @@ def main():
         pre = pagegenerators.PreloadingGenerator(gen, pageNumber=50)
         
         rows = []
-        c = 0
         for page in pre:
             if not page.exists() or page.isRedirectPage():
                 continue
@@ -167,8 +122,7 @@ def main():
                 continue
             
             rows.append([wtitle, q, p31, intro, cats, websites, viewer])
-            c += 1
-            if c >= limit:
+            if len(rows) >= limit:
                 break
         
         c = 1
@@ -188,18 +142,22 @@ def main():
 
 * '''Statistics''': {{saved}} (%s){{·}} {{nosaved}} (%s)
 
+Do not edit this page, it is automatically updated by bot.
+
 {| class="wikitable sortable"
 ! # !! Title !! Topic !! Description !! Website(s) !! width=100px | [[ArchiveBot]] %s
 |}
 
-{{disestablishments}}
+{{Deathwatch}}
 
 [[Category:Archive Team]]""" % (year, year, len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), rowsplain)
         print(output)
         
         page = pywikibot.Page(atsite, "Disestablishments in %s" % (year))
-        page.text = output
-        page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain))))
+        if page.text != output:
+            pywikibot.showDiff(page.text, output)
+            page.text = output
+            page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain))))
 
 if __name__ == '__main__':
     main()
