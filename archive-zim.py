@@ -20,27 +20,31 @@ from archive import *
 
 def main():
     wikisites = [
+        'gutenberg', 
+        'other', 
+        'psiram', 
+        'stack_exchange', 
+        'ted', 
+        'vikidia', 
+        
         #'wikibooks', 
-        'wikinews', 
+        #'wikinews', 
         #'wikipedia', 
-        'wikiquote', 
+        #'wikiquote', 
         #'wikisource', 
-        'wikispecies', 
-        'wikiversity', 
-        'wikivoyage', 
+        #'wikispecies', 
+        #'wikiversity', 
+        #'wikivoyage', 
         #'wiktionary', 
-    ]
-    tags = [
-        'kiwix', 
-        'mediawiki', 
-        'offline', 
-        'zim', 
     ]
     c = 0
     for wikisite in wikisites:
+        tags = ['kiwix', 'offline', 'zim']
         url = 'https://ftp.acc.umu.se/mirror/kiwix.org/zim/%s/' % (wikisite)
         html = getURL(url=url)
         zims = re.findall(r'href="([^ ]*?\.zim)\"', html)
+        if 'wiki' in wikisite.lower():
+            tags.append('mediawiki')
         for zim in zims:
             print('"Downloading %s' % (zim))
             zimurl = url + zim
