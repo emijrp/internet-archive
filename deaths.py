@@ -98,7 +98,7 @@ def main():
                 else:
                     viewerplain.append("[%s {{nosaved}}]" % (v[1]))
             viewerplain = '<br/>'.join(viewerplain)
-            rowsplain += "\n|-\n| %s || '''[[:wikipedia:en:%s|%s]]'''<br/><small>([[:wikipedia:wikidata:%s|%s]])</small> || %s || %s || %s || %s || %s || %s " % (c, itemLabel, itemLabel, q, q, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '-')
+            rowsplain += "\n|-\n| %s || '''[[:wikipedia:wikidata:%s|%s]]''' || %s || %s || %s || %s || %s || %s " % (c, q, itemLabel, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '-')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s deaths|Category:%s deaths]]'''. The websites for these entities could vanish in the foreseable future.
 

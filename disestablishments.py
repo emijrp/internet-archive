@@ -136,7 +136,7 @@ def main():
                 else:
                     viewerplain.append("[%s {{nosaved}}]" % (v[1]))
             viewerplain = '<br/>'.join(viewerplain)
-            rowsplain += "\n|-\n| %s || '''[[:wikipedia:en:%s|%s]]'''<br/><small>([[:wikipedia:wikidata:%s|%s]])</small> || %s || %s%s || %s || %s " % (c, wtitle, wtitle, q, q, p31, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', websites and '<br/>'.join(websites) or '-', viewerplain and viewerplain or '-')
+            rowsplain += "\n|-\n| %s || '''[[:wikipedia:wikidata:%s|%s]]''' || %s || %s%s || %s || %s " % (c, q, wtitle, p31, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', websites and '<br/>'.join(websites) or '-', viewerplain and viewerplain or '-')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s disestablishments|Category:%s disestablishments]]'''. The websites for these entities could vanish in the foreseable future.
 
