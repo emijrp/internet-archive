@@ -51,6 +51,7 @@ def main():
     print(maxyear)
     for year in range(minyear, maxyear+1):
         for pagenum in range(1, 100):
+            time.sleep(2)
             url = 'https://www.filmaffinity.com/es/advsearch.php?page=%s&stype[]=title&fromyear=%s&toyear=%s' % (pagenum, year, year)
             print(url)
             html = getURL(url=url)
