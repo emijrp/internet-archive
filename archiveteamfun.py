@@ -71,15 +71,20 @@ def getArchiveBotViewerDetails(viewerurl=''):
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
             rawjob = getURL(url=urljob)
             warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s-\d+\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
-            jobdate = 'nodate'
+            jobdate = ''
             jobsize = 0
             for warc in warcs:
                 jobdate = warc[0]
                 jobsize += int(warc[1])
+            if not jobdate:
+                if re.search(r"(?im)-(\d{8})-\d{6}-", rawjob):
+                    jobdate = re.findall(r"-(\d{8})-\d{6}-", rawjob)[0]
+                else:
+                    jobdate = 'nodate'
             if jobsize < 1024*1024:
-                jobdetails = "[https://archive.fart.website/archivebot/viewer/domain/%s %s] - [https://archive.fart.website/archivebot/viewer/job/%s %s] - %s - {{red|%0.1d MB}}" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
+                jobdetails = "[https://archive.fart.website/archivebot/viewer/domain/%s %s] - [https://archive.fart.website/archivebot/viewer/job/%s %s] - %s - {{red|%0.1d&nbsp;MB}}" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
             else:
-                jobdetails = "[https://archive.fart.website/archivebot/viewer/domain/%s %s] - [https://archive.fart.website/archivebot/viewer/job/%s %s] - %s - %0.1d MB" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
+                jobdetails = "[https://archive.fart.website/archivebot/viewer/domain/%s %s] - [https://archive.fart.website/archivebot/viewer/job/%s %s] - %s - %0.1d&nbsp;MB" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
             details.append(jobdetails)
     return '<br/>'.join(details)
 

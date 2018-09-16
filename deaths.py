@@ -92,14 +92,21 @@ def main():
         rowsplain = ""
         for row in rows:
             q, itemLabel, itemDescription, causeLabel, birthdate, deathdate, website, viewer = row
+            
             viewerplain = []
             for v in viewer:
                 if v[0]:
-                    viewerplain.append("[%s {{saved}}] || %s " % (v[1], v[2]))
+                    viewerplain.append("[%s {{saved}}]" % (v[1]))
                 else:
-                    viewerplain.append("[%s {{nosaved}}] || " % (v[1]))
+                    viewerplain.append("[%s {{nosaved}}]" % (v[1]))
             viewerplain = '<br/>'.join(viewerplain)
-            rowsplain += "\n|-\n| %s || '''[[:wikipedia:wikidata:%s|%s]]''' || %s || %s || %s || %s || %s || %s " % (c, q, itemLabel, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '- || - ')
+            viewerdetailsplain = []
+            for v in viewer:
+                if v[0]:
+                    viewerdetailsplain.append(v[2])
+            viewerdetailsplain = '<br/>'.join(viewerdetailsplain)
+            
+            rowsplain += "\n|-\n| %s || '''[[:wikipedia:d:%s|%s]]''' || %s || %s || %s || %s || %s || %s " % (c, q, itemLabel, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '-')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s deaths|Category:%s deaths]]'''. The websites for these entities could vanish in the foreseable future.
 
@@ -107,7 +114,7 @@ def main():
 
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
-{| class="wikitable sortable"
+{| class="wikitable sortable plainlinks"
 ! # !! width=150px | Name !! Description !! Birth date !! Death date !! Cause of death !! Website(s) !! width=100px | [[ArchiveBot]] !! Archive details %s
 |}
 
