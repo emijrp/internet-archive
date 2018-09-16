@@ -58,7 +58,7 @@ def main():
     
     start = ''
     years = range(year1, year2+1) 
-    limit = 200
+    limit = 500
     
     for year in years:
         outputlist = []
@@ -95,7 +95,11 @@ def main():
             print(wtitle, item)
             itemcontent = item.get()
             #print(itemcontent['descriptions'])
-            intro = getIntro(wtext, wtitle)
+            intro = ""
+            try:
+                intro = getIntro(wtext, wtitle)
+            except:
+                pass
             print(intro)
             
             p31 = ''
@@ -112,13 +116,15 @@ def main():
             if 'P856' in itemcontent['claims']:
                 for website in itemcontent['claims']['P856']:
                     web = website.getTarget()
-                    print(web)
-                    if re.search(r'(?im)(discount)', web):
-                        print("Skiping url, word filter")
-                        continue
-                    websites.append(web)
-                    viewer.append(getArchiveBotViewer(url=web))
-                    outputlist.append(web)
+                    if web:
+                        print(web)
+                        #https://www.archiveteam.org/index.php?title=MediaWiki:Spam-blacklist
+                        if re.search(r'(?im)(discount|loan|money)', web):
+                            print("Skiping url, word in spam filter")
+                            continue
+                        websites.append(web)
+                        viewer.append(getArchiveBotViewer(url=web))
+                        outputlist.append(web)
             
             if not websites:
                 continue
@@ -127,6 +133,7 @@ def main():
             if len(rows) >= limit:
                 break
         
+        rows.sort()
         c = 1
         rowsplain = ""
         for row in rows:
