@@ -125,7 +125,7 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
         print(output)
         
         page = pywikibot.Page(atsite, "Deaths in %s" % (year))
-        if True or page.text != output and len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)):
+        if page.text != output and len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)):
             pywikibot.showDiff(page.text, output)
             page.text = output
             page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain))))
