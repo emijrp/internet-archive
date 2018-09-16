@@ -58,9 +58,10 @@ def main():
     
     start = ''
     years = range(year1, year2+1) 
-    limit = 1000
+    limit = 200
     
     for year in years:
+        outputlist = []
         category = pywikibot.Category(enwpsite, "Category:%s disestablishments" % (year))
         gen = pagegenerators.CategorizedPageGenerator(category=category, start=start, namespaces=[0], recurse=2)
         pre = pagegenerators.PreloadingGenerator(gen, pageNumber=50)
@@ -117,6 +118,7 @@ def main():
                         continue
                     websites.append(web)
                     viewer.append(getArchiveBotViewer(url=web))
+                    outputlist.append(web)
             
             if not websites:
                 continue
@@ -132,20 +134,20 @@ def main():
             viewerplain = []
             for v in viewer:
                 if v[0]:
-                    viewerplain.append("[%s {{saved}}]" % (v[1]))
+                    viewerplain.append("[%s {{saved}}] || %s " % (v[1], v[2]))
                 else:
-                    viewerplain.append("[%s {{nosaved}}]" % (v[1]))
+                    viewerplain.append("[%s {{nosaved}}] || " % (v[1]))
             viewerplain = '<br/>'.join(viewerplain)
-            rowsplain += "\n|-\n| %s || '''[[:wikipedia:wikidata:%s|%s]]''' || %s || %s%s || %s || %s " % (c, q, wtitle, p31, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', websites and '<br/>'.join(websites) or '-', viewerplain and viewerplain or '-')
+            rowsplain += "\n|-\n| %s || '''[[:wikipedia:wikidata:%s|%s]]''' || %s || %s%s || %s || %s " % (c, q, wtitle, p31, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', websites and '<br/>'.join(websites) or '-', viewerplain and viewerplain or '- || - ')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s disestablishments|Category:%s disestablishments]]'''. The websites for these entities could vanish in the foreseable future.
 
 * '''Statistics''': {{saved}} (%s){{·}} {{nosaved}} (%s)
 
-Do not edit this page, it is automatically updated by bot.
+Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
 {| class="wikitable sortable"
-! # !! Title !! Topic !! Description !! Website(s) !! width=100px | [[ArchiveBot]] %s
+! # !! Title !! Topic !! Description !! Website(s) !! width=100px | [[ArchiveBot]] !! Archive details %s
 |}
 
 {{Deathwatch}}
@@ -154,10 +156,22 @@ Do not edit this page, it is automatically updated by bot.
         print(output)
         
         page = pywikibot.Page(atsite, "Disestablishments in %s" % (year))
-        if page.text != output:
+        if True or page.text != output and len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)):
             pywikibot.showDiff(page.text, output)
             page.text = output
             page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain))))
+        else:
+            print("No changes needed in", page.title())
+        
+        outputlist.sort()
+        outputlist = '\n'.join(outputlist)
+        pagelist = pywikibot.Page(atsite, "Disestablishments in %s/list" % (year))
+        if pagelist.text != outputlist:
+            pywikibot.showDiff(pagelist.text, outputlist)
+            pagelist.text = outputlist
+            pagelist.save("BOT - Updating list")
+        else:
+            print("No changes needed in", pagelist.title())
 
 if __name__ == '__main__':
     main()
