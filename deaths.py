@@ -75,7 +75,8 @@ def main():
             birthdate = 'birthdate' in result and result['birthdate']['value'].split('T')[0] or ''
             deathdate = 'deathdate' in result and result['deathdate']['value'].split('T')[0] or ''
             website = 'website' in result and result['website']['value'] or ''
-            outputlist.append(website)
+            if not website in outputlist:
+                outputlist.append(website)
             viewer = [getArchiveBotViewer(url=website)]
             
             if not website:
@@ -106,7 +107,7 @@ def main():
                     viewerdetailsplain.append(v[2])
             viewerdetailsplain = '<br/>'.join(viewerdetailsplain)
             
-            rowsplain += "\n|-\n| %s || '''[[:wikipedia:d:%s|%s]]''' || %s || %s || %s || %s || %s || %s " % (c, q, itemLabel, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '-')
+            rowsplain += "\n|-\n| %s || '''[[:wikipedia:d:%s|%s]]''' || %s || %s || %s || %s || %s || %s || %s " % (c, q, itemLabel, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '-')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s deaths|Category:%s deaths]]'''. The websites for these entities could vanish in the foreseable future.
 

@@ -124,7 +124,8 @@ def main():
                             continue
                         websites.append(web)
                         viewer.append(getArchiveBotViewer(url=web))
-                        outputlist.append(web)
+                        if not web in outputlist:
+                            outputlist.append(web)
             
             if not websites:
                 continue
