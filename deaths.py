@@ -56,7 +56,7 @@ def main():
             FILTER (?deathdate <= "%s-12-31T23:59:59Z"^^xsd:dateTime).
             SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
         }
-        ORDER BY ?deathdate
+        ORDER BY ?deathdate ?birthdate
         """ % (year, year)
         url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=%s' % (urllib.parse.quote(query))
         url = '%s&format=json' % (url)
