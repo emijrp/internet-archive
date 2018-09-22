@@ -68,7 +68,7 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
     details = []
     totaljobsize = 0
     for domain in domains:
-        if domain != origdomain and not origdomain in domain and not origdomain2 in domain:
+        if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
         rawjobs = getURL(url=urljobs)
