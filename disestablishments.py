@@ -171,7 +171,7 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
         print(output)
         
         page = pywikibot.Page(atsite, "Disestablishments in %s" % (year))
-        if True or len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)) or \
+        if len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)) or \
             len(re.findall(r'{{nosaved}}', page.text)) != len(re.findall(r'{{nosaved}}', output)):
             pywikibot.showDiff(page.text, output)
             page.text = output
