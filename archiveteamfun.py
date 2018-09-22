@@ -59,7 +59,7 @@ def loadSPARQL(sparql=''):
         return 
     return
 
-def getArchiveBotViewerDetails(url=''):
+def getArchiveBotViewerDetails(url='', singleurl=False):
     viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
     origdomain = url.split('//')[1].split('/')[0]
     origdomain2 = re.sub(r'(?im)^(www\d*)\.', '.', origdomain)
@@ -73,10 +73,19 @@ def getArchiveBotViewerDetails(url=''):
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
         rawjobs = getURL(url=urljobs)
         jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
-        for job in jobs:
+        for job in jobs[:25]: #limit, to avoid twitter, facebook and other with many jobs
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
             rawjob = getURL(url=urljob)
-            warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s-\d+\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
+            
+            if singleurl:
+                jsonfile = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
+                if jsonfile:
+                    jsonurl = jsonfile[0]
+                    jsonraw = getURL(url=jsonurl)
+                    if not url in jsonraw:
+                        continue
+            
+            warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?-\d+\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
             jobdate = ''
             jobsize = 0
             for warc in warcs:
@@ -108,11 +117,8 @@ def getArchiveBotViewer(url=''):
             return False, viewerurl, '', 0
         else:
             if len(url.split(domain)[1]) > 1: #url is domain.ext/more
-                if url.lower() in raw.lower():
-                    details, totaljobsize = getArchiveBotViewerDetails(url=url)
-                    return True, viewerurl, details, totaljobsize
-                else:
-                    return False, viewerurl, '', 0
+                details, totaljobsize = getArchiveBotViewerDetails(url=url, singleurl=True)
+                return details and True or False, viewerurl, details, totaljobsize
             elif domain.lower() in raw.lower(): #url is domain.ext
                 details, totaljobsize = getArchiveBotViewerDetails(url=url)
                 return True, viewerurl, details, totaljobsize

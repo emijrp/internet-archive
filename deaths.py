@@ -75,7 +75,9 @@ def main():
             birthdate = 'birthdate' in result and result['birthdate']['value'].split('T')[0] or ''
             deathdate = 'deathdate' in result and result['deathdate']['value'].split('T')[0] or ''
             website = 'website' in result and result['website']['value'] or ''
-            if not website in outputlist:
+            if website in outputlist:
+                continue #duplicate row because multiple birthdates resolution (1940, 1940-02-01, etc)
+            else:
                 outputlist.append(website)
             viewer = [getArchiveBotViewer(url=website)]
             
