@@ -91,44 +91,45 @@ def main():
         
         c = 1
         rowsplain = ""
+        totaljobsize = 0
         for row in rows:
             q, itemLabel, itemDescription, causeLabel, birthdate, deathdate, website, viewer = row
             
             viewerplain = []
-            for v in viewer:
-                if v[0]:
-                    viewerplain.append("[%s {{saved}}]" % (v[1]))
-                else:
-                    viewerplain.append("[%s {{nosaved}}]" % (v[1]))
-            viewerplain = '<br/>'.join(viewerplain)
             viewerdetailsplain = []
             for v in viewer:
                 if v[0]:
+                    viewerplain.append("[%s {{saved}}]" % (v[1]))
                     viewerdetailsplain.append(v[2])
+                else:
+                    viewerplain.append("[%s {{nosaved}}]" % (v[1]))
+                totaljobsize += v[3]
+            viewerplain = '<br/>'.join(viewerplain)
             viewerdetailsplain = '<br/>'.join(viewerdetailsplain)
             
-            rowsplain += "\n|-\n| %s || '''[[:wikipedia:d:%s|%s]]''' || %s || %s || %s || %s || %s || %s || %s " % (c, q, itemLabel, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '-')
+            rowsplain += "\n|-\n| '''[[:wikipedia:d:%s|%s]]''' || %s || %s || %s || %s || %s || %s || %s " % (q, itemLabel, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '-')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s deaths|Category:%s deaths]]'''. The websites for these entities could vanish in the foreseable future.
 
-* '''Statistics''': {{saved}} (%s){{·}} {{nosaved}} (%s)
+* '''Statistics''': {{saved}} (%s){{·}} {{nosaved}} (%s){{·}} Total size (%0.1d&nbsp;MB)
 
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
 {| class="wikitable sortable plainlinks"
-! # !! width=150px | Name !! Description !! Birth date !! Death date !! Cause of death !! Website(s) !! width=100px | [[ArchiveBot]] !! Archive details %s
+! width=150px | Name !! Description !! Birth date !! Death date !! Cause of death !! Website(s) !! width=100px | [[ArchiveBot]] !! Archive details %s
 |}
 
 {{deathwatch}}
 
-[[Category:Archive Team]]""" % (year, year, len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), rowsplain)
+[[Category:Archive Team]]""" % (year, year, len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), totaljobsize/(1024.0*1024), rowsplain)
         print(output)
         
         page = pywikibot.Page(atsite, "Deaths in %s" % (year))
-        if page.text != output and len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)):
+        if len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)) or \
+            len(re.findall(r'{{nosaved}}', page.text)) != len(re.findall(r'{{nosaved}}', output)):
             pywikibot.showDiff(page.text, output)
             page.text = output
-            page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain))))
+            page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s), Total size (%0.1d MB)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), totaljobsize/(1024.0*1024)))
         else:
             print("No changes needed in", page.title())
         

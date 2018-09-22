@@ -59,11 +59,17 @@ def loadSPARQL(sparql=''):
         return 
     return
 
-def getArchiveBotViewerDetails(viewerurl=''):
+def getArchiveBotViewerDetails(url=''):
+    viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
+    origdomain = url.split('//')[1].split('/')[0]
+    origdomain2 = re.sub(r'(?im)^(www\d*)\.', '.', origdomain)
     rawdomains = getURL(url=viewerurl)
     domains = re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)
     details = []
+    totaljobsize = 0
     for domain in domains:
+        if domain != origdomain and not origdomain in domain and not origdomain2 in domain:
+            continue
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
         rawjobs = getURL(url=urljobs)
         jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
@@ -85,8 +91,9 @@ def getArchiveBotViewerDetails(viewerurl=''):
                 jobdetails = "[https://archive.fart.website/archivebot/viewer/domain/%s %s] - [https://archive.fart.website/archivebot/viewer/job/%s %s] - %s - {{red|%0.1d&nbsp;MB}}" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
             else:
                 jobdetails = "[https://archive.fart.website/archivebot/viewer/domain/%s %s] - [https://archive.fart.website/archivebot/viewer/job/%s %s] - %s - %0.1d&nbsp;MB" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
+            totaljobsize += jobsize
             details.append(jobdetails)
-    return '<br/>'.join(details)
+    return '<br/>'.join(details), totaljobsize
 
 def getArchiveBotViewer(url=''):
     if url and '//' in url:
@@ -96,21 +103,21 @@ def getArchiveBotViewer(url=''):
         if raw and '</form>' in raw:
             raw = raw.split('</form>')[1]
         else:
-            return False, viewerurl
+            return False, viewerurl, '', 0
         if re.search(r'No search results', raw):
-            return False, viewerurl
+            return False, viewerurl, '', 0
         else:
-            if len(url.split(domain)[1]) > 1: #domain.com/more
-                if re.search(r'(?im)(%s)' % (url), raw):
-                    details = getArchiveBotViewerDetails(viewerurl=viewerurl)
-                    return True, viewerurl, details
+            if len(url.split(domain)[1]) > 1: #url is domain.ext/more
+                if url.lower() in raw.lower():
+                    details, totaljobsize = getArchiveBotViewerDetails(url=url)
+                    return True, viewerurl, details, totaljobsize
                 else:
-                    return False, viewerurl, ''
-            elif re.search(r'(?im)(%s)' % (domain), raw):
-                details = getArchiveBotViewerDetails(viewerurl=viewerurl)
-                return True, viewerurl, details
+                    return False, viewerurl, '', 0
+            elif domain.lower() in raw.lower(): #url is domain.ext
+                details, totaljobsize = getArchiveBotViewerDetails(url=url)
+                return True, viewerurl, details, totaljobsize
             else:
-                details = getArchiveBotViewerDetails(viewerurl=viewerurl)
-                return False, viewerurl, details
+                details, totaljobsize = getArchiveBotViewerDetails(url=url)
+                return False, viewerurl, details, totaljobsize
     else:
-        return False, 'https://archive.fart.website/archivebot/viewer/', ''
+        return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
