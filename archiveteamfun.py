@@ -105,8 +105,11 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
     return '<br/>'.join(details), totaljobsize
 
 def getArchiveBotViewer(url=''):
-    if url and '//' in url:
-        domain = url.split('//')[1].split('/')[0]
+    if url and '://' in url:
+        if '://archive.org/' in url or '://www.webcitation.org/' in url:
+            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
+        
+        domain = url.split('://')[1].split('/')[0]
         viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
         raw = getURL(url=viewerurl)
         if raw and '</form>' in raw:
