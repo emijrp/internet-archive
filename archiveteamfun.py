@@ -26,11 +26,21 @@ import urllib
 import urllib.request
 import urllib.parse
 
-def getURL(url=''):
+cached = {}
+
+def getURL(url='', cache=False):
+    global cached
+    
+    if cache: #do not download if it is cached
+        if url in cached:
+            return cached[url]
+    
     raw = ''
     req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0' })
     try:
         raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
+        if cache: #refresh cache
+            cached[url] = raw
     except:
         sleep = 10 # seconds
         maxsleep = 30
@@ -40,6 +50,8 @@ def getURL(url=''):
             time.sleep(sleep)
             try:
                 raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
+                if cache: #refresh cache
+                    cached[url] = raw
             except:
                 pass
             sleep = sleep * 2
@@ -63,25 +75,26 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
     viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
     origdomain = url.split('//')[1].split('/')[0]
     origdomain2 = re.sub(r'(?im)^(www\d*)\.', '.', origdomain)
-    rawdomains = getURL(url=viewerurl)
+    rawdomains = getURL(url=viewerurl, cache=True)
     domains = re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)
     details = []
     totaljobsize = 0
+    jobslimit = 50 #limit, to avoid twitter, facebook and other with many jobs
     for domain in domains:
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
-        rawjobs = getURL(url=urljobs)
+        rawjobs = getURL(url=urljobs, cache=True)
         jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
-        for job in jobs[:25]: #limit, to avoid twitter, facebook and other with many jobs
+        for job in jobs[:jobslimit]: 
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
-            rawjob = getURL(url=urljob)
+            rawjob = getURL(url=urljob, cache=True)
             
             if singleurl:
                 jsonfile = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
                 if jsonfile:
                     jsonurl = jsonfile[0]
-                    jsonraw = getURL(url=jsonurl)
+                    jsonraw = getURL(url=jsonurl, cache=True)
                     if not url in jsonraw:
                         continue
             
@@ -111,7 +124,7 @@ def getArchiveBotViewer(url=''):
         
         domain = url.split('://')[1].split('/')[0]
         viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
-        raw = getURL(url=viewerurl)
+        raw = getURL(url=viewerurl, cache=True)
         if raw and '</form>' in raw:
             raw = raw.split('</form>')[1]
         else:
