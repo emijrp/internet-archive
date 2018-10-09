@@ -73,7 +73,7 @@ def main():
             wtext = page.text
             wtitle = page.title()
             print('\n\n==', wtitle, '==\n')
-            if not re.search(r'(?im)disestablishments', wtext):
+            if not re.search(r'(?im)disestablish(ed|ments)', wtext):
                 print("Not in disestablishments categories. Skiping...", wtitle)
                 continue
             

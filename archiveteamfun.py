@@ -33,11 +33,13 @@ def getURL(url='', cache=False):
     
     if cache: #do not download if it is cached
         if url in cached:
+            print("Using cached page for %s" % (url))
             return cached[url]
     
     raw = ''
     req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0' })
     try:
+        print("Retrieving: %s" % (url))
         raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
         if cache: #refresh cache
             cached[url] = raw
@@ -79,7 +81,7 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
     domains = re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)
     details = []
     totaljobsize = 0
-    jobslimit = 50 #limit, to avoid twitter, facebook and other with many jobs
+    jobslimit = 250 #limit, to avoid twitter, facebook and other with many jobs
     for domain in domains:
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
