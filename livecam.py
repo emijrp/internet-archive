@@ -71,12 +71,13 @@ def main():
         os.system("mv %s.part %s" % (destfile, destfile))
         
         itemid = "livecam-%s-%s" % (livecam, today)
-        itemtags = commontags + livecams[livecam]['tags']
+        itemtags = commontags + livecams[livecam]['tags'] + [livecam]
         description = getDescription(livecam=livecam, url=originalurl)
         description = """%s<br><br>Source: <a href="%s" rel="nofollow">%s</a><br>Uploader: <a href="%s" rel="nofollow">%s</a>""" % (description, originalurl, originalurl, livecams[livecam]['source'], livecams[livecam]['uploader'])
         md = {
             'mediatype': 'movies',
             'collection': 'opensource_movies',
+            'creator': livecams[livecam]['uploader'],
             'title': itemid,
             'description': description,
             #'language': '', 
