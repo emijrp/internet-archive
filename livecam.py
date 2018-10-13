@@ -49,7 +49,7 @@ def main():
     commontags = ["youtube", "live cam", "live", "cam", "video", year, yearmonth, today_]
     
     livecams = {
-        'tokyo1': {
+        'japan1': {
             'originalurl': 'https://www.youtube.com/watch?v=nKMuBisZsZI', 
             'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
             'tags': ["tokyo", "japan", "shibuya", "scramble crossing"], 
