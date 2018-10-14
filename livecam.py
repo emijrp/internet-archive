@@ -22,6 +22,20 @@ import sys
 import time
 from internetarchive import get_item
 
+# Requirements:
+#   * enough free space, live cams consumes lots of space
+#   * virtualenv -p python3 livecams
+#   * cd livecams;source bin/activate
+#   * pip install internetarchive
+#   * deactivate
+#   * create .iakeys file in user home
+#   * save this script and youtube-dl in livecams directory
+# Instructions:
+#   * cd livecams
+#   * source bin/activate
+#   * python livecam.py cam-name
+#   * or using cron: 0 *    * * *    cd /path/livecams && . bin/activate && python livecam.py cam-name && deactivate
+
 # You need a file with access and secret keys, in two different lines
 iakeysfilename = '%s/.iakeys' % (os.path.expanduser('~'))
 if os.path.exists(iakeysfilename):
