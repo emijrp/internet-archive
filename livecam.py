@@ -22,7 +22,7 @@ import sys
 import time
 from internetarchive import get_item
 
-# Requirements:
+# Requirements and install:
 #   * enough free space, live cams consumes lots of space
 #   * virtualenv -p python3 livecams
 #   * cd livecams;source bin/activate
@@ -33,8 +33,8 @@ from internetarchive import get_item
 # Instructions:
 #   * cd livecams
 #   * source bin/activate
-#   * python livecam.py cam-name
-#   * or using cron: 0 *    * * *    cd /path/livecams && . bin/activate && python livecam.py cam-name && deactivate
+#   * python livecam.py cam-name (it archives 1 hour)
+#   * or using cron (to archive 1 hour chunks hourly): 0 *    * * *    cd /path/livecams && . bin/activate && python livecam.py cam-name && deactivate
 
 # You need a file with access and secret keys, in two different lines
 iakeysfilename = '%s/.iakeys' % (os.path.expanduser('~'))
@@ -87,11 +87,13 @@ def main():
         maxretries = 5
         originalurl = livecams[livecam]['originalurl']
         destfile = "livecam-%s-%s.mp4" % (livecam, todayandhour)
+        destfilepart = destfile + ".part"
         destthumbfile = "livecam-%s-%s-thumb.jpg" % (livecam, today)
         timeout = 60*60+60 #in seconds, 1 hour + 1 minute
         #timeout = 20 #in seconds, 20 seconds for tests
         os.system("timeout -s 15 %ss python youtube-dl %s -o %s" % (timeout, originalurl, destfile))
-        os.system("mv %s.part %s" % (destfile, destfile))
+        if os.path.exists(destfilepart):
+            os.system("mv %s %s" % (destfilepart, destfile))
         os.system("python youtube-dl %s --skip-download --write-thumbnail -o %s" % (originalurl, destthumbfile))
         
         itemid = "livecam-%s-%s" % (livecam, today)
