@@ -65,6 +65,13 @@ def main():
     commontags = ["youtube", "live cam", "live", "cam", "video", year, yearmonth, today_]
     
     livecams = {
+        'argentina1': {
+            'originalurl': 'https://www.youtube.com/watch?v=UCTfsg3ySfE', 
+            'licenseurl': '', 
+            'tags': ["buenos aires", "argentina", "obelisco", "obelisk"], 
+            'source': 'https://www.youtube.com/channel/UCCkRwmztPEvut3gpsgmCmzw', 
+            'uploader': 'FourSeasons BuenosAires', 
+        }, 
         'japan1': {
             'originalurl': 'https://www.youtube.com/watch?v=nKMuBisZsZI', 
             'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
@@ -78,6 +85,27 @@ def main():
             'tags': ["madrid", "spain", "Sierra de Guadarrama", "birds", "aves", "bird feeder", "comedero"], 
             'source': 'https://www.youtube.com/channel/UCg6OElsAGYmkuSySkZpaNGw', 
             'uploader': 'SEOBirdLife - Sociedad Española de Ornitología', 
+        }, 
+        'spain2': {
+            'originalurl': 'https://www.youtube.com/watch?v=NiduuFQL_0A', 
+            'licenseurl': '', 
+            'tags': ["cadiz", "spain", "plaza de sevilla"], 
+            'source': 'https://www.youtube.com/channel/UCcP8beobL2p3a0P988ColjQ', 
+            'uploader': 'OCADIZ DIGITAL', 
+        }, 
+        'usa1': {
+            'originalurl': 'https://www.youtube.com/watch?v=la90mA4VLa4', 
+            'licenseurl': '', 
+            'tags': ["united states", "usa", "brooklyn bridge", "manhattan"], 
+            'source': 'https://www.youtube.com/channel/UCp1ojgNJ8mNWdMDsdcMRA2Q', 
+            'uploader': 'St. George Tower', 
+        }, 
+        'usa2': {
+            'originalurl': 'https://www.youtube.com/watch?v=Bzv_t7AZPEQ', 
+            'licenseurl': '', 
+            'tags': ["united states", "usa", "boston"], 
+            'source': 'https://www.youtube.com/channel/UC8gbWbcNNyb5-NIXvFklkOA', 
+            'uploader': 'IPTimelapse Webcam', 
         }, 
     }
     
