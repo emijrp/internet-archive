@@ -49,8 +49,10 @@ def getDescription(livecam='', url=''):
     description = ""
     descfile = "livecam-%s.description" % (livecam)
     os.system("python youtube-dl --get-description %s > %s" % (url, descfile))
-    with open(descfile, 'r') as f:
-        description = f.read()
+    if os.path.exists(descfile):
+        with open(descfile, 'r') as f:
+            description = f.read()
+        os.remove(descfile)
     return description
 
 def main():
@@ -92,8 +94,11 @@ def main():
         timeout = 60*60+60 #in seconds, 1 hour + 1 minute
         #timeout = 20 #in seconds, 20 seconds for tests
         os.system("timeout -s 15 %ss python youtube-dl %s -o %s" % (timeout, originalurl, destfile))
-        if os.path.exists(destfilepart):
+        if os.path.exists(destfilepart): #sometimes the stream is cut and youtube-dl move the file itself
             os.system("mv %s %s" % (destfilepart, destfile))
+        if not os.path.exists(destfile) and not os.path.exists(destfilepart):
+            print("ERROR: Broken url?")
+            sys.exit()
         os.system("python youtube-dl %s --skip-download --write-thumbnail -o %s" % (originalurl, destthumbfile))
         
         itemid = "livecam-%s-%s" % (livecam, today)
@@ -130,6 +135,7 @@ def main():
         if uploaded:
             print('You can find it in https://archive.org/details/%s' % (itemid))
             os.remove(destfile)
+            os.remove(destthumbfile)
         else:
             print('Error while uploading. Upload it manually later.')
     else:
