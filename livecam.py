@@ -68,44 +68,86 @@ def main():
         'argentina1': {
             'originalurl': 'https://www.youtube.com/watch?v=UCTfsg3ySfE', 
             'licenseurl': '', 
-            'tags': ["buenos aires", "argentina", "obelisco", "obelisk"], 
+            'tags': ["Buenos Aires", "Argentina", "obelisco", "obelisk"], 
             'source': 'https://www.youtube.com/channel/UCCkRwmztPEvut3gpsgmCmzw', 
             'uploader': 'FourSeasons BuenosAires', 
+        }, 
+        'italy1': {
+            'originalurl': 'https://www.youtube.com/watch?v=P9qjE1dm75A', 
+            'licenseurl': '', 
+            'tags': ["Venice", "Italy", "St. Mark's Basin"], 
+            'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
+            'uploader': 'I Love You Venice', 
+        }, 
+        'italy2': {
+            'originalurl': 'https://www.youtube.com/watch?v=vPbQcM4k1Ys', 
+            'licenseurl': '', 
+            'tags': ["Venice", "Italy", "Rialto Bridge"], 
+            'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
+            'uploader': 'I Love You Venice', 
+        }, 
+        'italy3': {
+            'originalurl': 'https://www.youtube.com/watch?v=n61yy_sL4MY', 
+            'licenseurl': '', 
+            'tags': ["Venice", "Italy", "Grand Canal"], 
+            'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
+            'uploader': 'I Love You Venice', 
         }, 
         'japan1': {
             'originalurl': 'https://www.youtube.com/watch?v=nKMuBisZsZI', 
             'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
-            'tags': ["tokyo", "japan", "shibuya", "scramble crossing"], 
+            'tags': ["Tokyo", "Japan", "Shibuya", "scramble crossing"], 
             'source': 'https://www.youtube.com/channel/UCgdHxnHSXvcAi4PaMIY1Ltg', 
             'uploader': 'SHIBUYA COMMUNITY NEWS', 
+        }, 
+        'japan2': {
+            'originalurl': 'https://www.youtube.com/watch?v=DNLM4N-WYyQ', 
+            'licenseurl': '', 
+            'tags': ["Tokyo", "Japan", "Tokyo Tower"], 
+            'source': 'https://www.youtube.com/channel/UCKyXyJMijwyBebgI9wmzFcw', 
+            'uploader': '東京タワーライブカメラ', 
+        }, 
+        'southafrica1': {
+            'originalurl': 'https://www.youtube.com/watch?v=ObCoEm0o94A', 
+            'licenseurl': '', 
+            'tags': ["Cape Town", "South Africa", "Sea Point"], 
+            'source': 'https://www.youtube.com/channel/UC9Ljd016Si9rv3KS-5CbpGg', 
+            'uploader': 'Vanilla', 
         }, 
         'spain1': {
             'originalurl': 'https://www.youtube.com/watch?v=2qAQ1DUFWhY', 
             'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
-            'tags': ["madrid", "spain", "Sierra de Guadarrama", "birds", "aves", "bird feeder", "comedero"], 
+            'tags': ["Madrid", "Spain", "Sierra de Guadarrama", "birds", "aves", "bird feeder", "comedero"], 
             'source': 'https://www.youtube.com/channel/UCg6OElsAGYmkuSySkZpaNGw', 
             'uploader': 'SEOBirdLife - Sociedad Española de Ornitología', 
         }, 
         'spain2': {
             'originalurl': 'https://www.youtube.com/watch?v=NiduuFQL_0A', 
             'licenseurl': '', 
-            'tags': ["cadiz", "spain", "plaza de sevilla"], 
+            'tags': ["Cadiz", "Spain", "Plaza de Sevilla"], 
             'source': 'https://www.youtube.com/channel/UCcP8beobL2p3a0P988ColjQ', 
             'uploader': 'OCADIZ DIGITAL', 
         }, 
         'usa1': {
             'originalurl': 'https://www.youtube.com/watch?v=la90mA4VLa4', 
             'licenseurl': '', 
-            'tags': ["united states", "usa", "brooklyn bridge", "manhattan"], 
+            'tags': ["United States", "USA", "Brooklyn Bridge", "Manhattan"], 
             'source': 'https://www.youtube.com/channel/UCp1ojgNJ8mNWdMDsdcMRA2Q', 
             'uploader': 'St. George Tower', 
         }, 
         'usa2': {
             'originalurl': 'https://www.youtube.com/watch?v=Bzv_t7AZPEQ', 
             'licenseurl': '', 
-            'tags': ["united states", "usa", "boston"], 
+            'tags': ["United States", "USA", "Boston"], 
             'source': 'https://www.youtube.com/channel/UC8gbWbcNNyb5-NIXvFklkOA', 
             'uploader': 'IPTimelapse Webcam', 
+        }, 
+        'vatican1': {
+            'originalurl': 'https://www.youtube.com/watch?v=q5wc5aIpjk4', 
+            'licenseurl': '', 
+            'tags': ["Vatican", "Vatican City", "Piazza San Pietro"], 
+            'source': 'https://www.youtube.com/channel/UC7E-LYc1wivk33iyt5bR5zQ', 
+            'uploader': 'Vatican News', 
         }, 
     }
     
@@ -113,8 +155,7 @@ def main():
     if len(sys.argv) > 1:
         livecam = sys.argv[1] in livecams.keys() and sys.argv[1] or ''
         
-    if livecam:        
-        maxretries = 5
+    if livecam:
         originalurl = livecams[livecam]['originalurl']
         destfile = "livecam-%s-%s.mp4" % (livecam, todayandhour)
         destfilepart = destfile + ".part"
@@ -147,6 +188,7 @@ def main():
             'licenseurl': 'licenseurl' in livecams[livecam] and livecams[livecam]['licenseurl'] or '', 
             'originalurl': originalurl,
         }
+        maxretries = 5
         retries = 1
         uploaded = False
         while retries <= maxretries:
