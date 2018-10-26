@@ -93,6 +93,13 @@ def main():
             'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
             'uploader': 'I Love You Venice', 
         }, 
+        'italy4': {
+            'originalurl': 'https://www.youtube.com/watch?v=Age6SBeTyPQ', 
+            'licenseurl': '', 
+            'tags': ["Italy", "Piazza San Francesco", "Assisi", "Perugia", "Umbria"], 
+            'source': 'https://www.youtube.com/channel/UC_FuR9GFVJE2A8H02sQmHWw', 
+            'uploader': 'Umbria Webcam', 
+        }, 
         'japan1': {
             'originalurl': 'https://www.youtube.com/watch?v=nKMuBisZsZI', 
             'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
@@ -127,6 +134,13 @@ def main():
             'tags': ["Cadiz", "Spain", "Plaza de Sevilla"], 
             'source': 'https://www.youtube.com/channel/UCcP8beobL2p3a0P988ColjQ', 
             'uploader': 'OCADIZ DIGITAL', 
+        }, 
+        'spain3': {
+            'originalurl': 'https://www.youtube.com/watch?v=qL3osQtMBls', 
+            'licenseurl': '', 
+            'tags': ["Spain", "Catalunya", "Plaça Mercadal", "Ajuntament de Reus", "Reus"], 
+            'source': 'https://www.youtube.com/channel/UCUNkMfIrFuCJDzuEsezgr5g', 
+            'uploader': 'Reus_cat', 
         }, 
         'usa1': {
             'originalurl': 'https://www.youtube.com/watch?v=la90mA4VLa4', 
