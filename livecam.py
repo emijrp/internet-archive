@@ -72,6 +72,13 @@ def main():
             'source': 'https://www.youtube.com/channel/UCCkRwmztPEvut3gpsgmCmzw', 
             'uploader': 'FourSeasons BuenosAires', 
         }, 
+        'finland1': {
+            'originalurl': 'https://www.youtube.com/watch?v=YQ-ADBrkcYc', 
+            'licenseurl': 'https://creativecommons.org/licenses/by/3.0/',  
+            'tags': ["Finland", "Larukite kelikamera", "Larukite"], 
+            'source': 'https://www.youtube.com/channel/UCJmadTJ58HxfuPMgDm6rtrg', 
+            'uploader': 'Lauttasaaren leijalautailijat ry - Larukite', 
+        }, 
         'italy1': {
             'originalurl': 'https://www.youtube.com/watch?v=P9qjE1dm75A', 
             'licenseurl': '', 
@@ -141,6 +148,13 @@ def main():
             'tags': ["Spain", "Catalunya", "Plaça Mercadal", "Ajuntament de Reus", "Reus"], 
             'source': 'https://www.youtube.com/channel/UCUNkMfIrFuCJDzuEsezgr5g', 
             'uploader': 'Reus_cat', 
+        }, 
+        'sweden1': {
+            'originalurl': 'https://www.youtube.com/watch?v=EHH1SQDmqg4', 
+            'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
+            'tags': ["Sweden", "Naturum Tåkern", "nature"], 
+            'source': 'https://www.youtube.com/channel/UCsz-sBEnp4DCmm3JRovKTcQ', 
+            'uploader': 'Naturum Tåkern LIVE', 
         }, 
         'usa1': {
             'originalurl': 'https://www.youtube.com/watch?v=la90mA4VLa4', 
