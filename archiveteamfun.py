@@ -123,6 +123,14 @@ def getArchiveBotViewer(url=''):
     if url and '://' in url:
         if '://archive.org/' in url or '://www.webcitation.org/' in url:
             return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
+        """if '://transfer.sh/' in url:
+            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
+        if '://facebook.com/' in url or '://www.facebook.com/' in url:
+            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
+        if '://twitter.com/' in url or '://www.twitter.com/' in url:
+            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
+        if '://instagram.com/' in url or '://www.instagram.com/' in url:
+            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0"""
         
         domain = url.split('://')[1].split('/')[0]
         viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url

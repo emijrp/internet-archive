@@ -44,6 +44,7 @@ def main():
             print("Page %s/list doesnt exist" % (wtitle))
             continue
         raw = wlist.text.strip().splitlines()
+        raw = list(set(raw)) #remove dupes
         raw.sort()
         raw = '\n'.join(raw)
         if wlist.text != raw:
@@ -71,7 +72,7 @@ def main():
                     viewerplain.append("[%s {{saved}}]" % (v[1]))
                     viewerdetailsplain.append(v[2])
                 else:
-                    viewerplain.append("[%s {{nosaved}}]" % (v[1]))
+                    viewerplain.append("[%s {{notsaved}}]" % (v[1]))
                 totaljobsize += v[3]
             viewerplain = '<br/>'.join(viewerplain)
             viewerdetailsplain = '<br/>'.join(viewerdetailsplain)
@@ -80,21 +81,21 @@ def main():
             c += 1
         
         output = """
-* '''Statistics''': {{saved}} (%s){{·}} {{nosaved}} (%s){{·}} Total size (%0.1d&nbsp;MB)
+* '''Statistics''': {{saved}} (%s){{·}} {{notsaved}} (%s){{·}} Total size (%0.1d&nbsp;MB)
 
 Do not edit this table, it is automatically updated by bot. There is a [[{{FULLPAGENAME}}/list|raw list]] of URLs that you can edit.
 
 {| class="wikitable sortable plainlinks"
 ! width=150px | Website !! [[ArchiveBot]] !! Archive details %s
 |}
-""" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), totaljobsize/(1024.0*1024), rowsplain)
+""" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), totaljobsize/(1024.0*1024), rowsplain)
         before = wtext.split('<!-- bot -->')[0]
         after = wtext.split('<!-- /bot -->')[1]
         newtext = '%s<!-- bot -->%s<!-- /bot -->%s' % (before, output, after)
         if wtext != newtext:
             pywikibot.showDiff(wtext, newtext)
             page.text = newtext
-            page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s), Total size (%0.1d MB)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), totaljobsize/(1024.0*1024)))
+            page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%0.1d MB)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), totaljobsize/(1024.0*1024)))
         else:
             print("No changes needed in", page.title())
     
