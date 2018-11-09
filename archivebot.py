@@ -59,25 +59,23 @@ def main():
                 continue
             websites.append(line)
             
-        
         c = 1
         rowsplain = ""
         totaljobsize = 0
         for website in websites:
+            viewerplain = ''
+            viewerdetailsplain = ''
             viewer = [getArchiveBotViewer(url=website)]
-            viewerplain = []
-            viewerdetailsplain = []
-            for v in viewer:
-                if v[0]:
-                    viewerplain.append("[%s {{saved}}]" % (v[1]))
-                    viewerdetailsplain.append(v[2])
-                else:
-                    viewerplain.append("[%s {{notsaved}}]" % (v[1]))
-                totaljobsize += v[3]
-            viewerplain = '<br/>'.join(viewerplain)
-            viewerdetailsplain = '<br/>'.join(viewerdetailsplain)
-            
-            rowsplain += "\n|-\n| %s || %s || %s " % (website, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '-')
+            if viewer[0][0]:
+                viewerplain = "[%s {{saved}}]" % (viewer[0][1])
+                viewerdetailsplain = viewer[0][2]
+            else:
+                viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
+                viewerdetailsplain = ''
+            totaljobsize += viewer[0][3]
+            rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
+            rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
+            rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, website, rowspanplain, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '| - || - || - || - ')
             c += 1
         
         output = """
@@ -86,7 +84,9 @@ def main():
 Do not edit this table, it is automatically updated by bot. There is a [[{{FULLPAGENAME}}/list|raw list]] of URLs that you can edit.
 
 {| class="wikitable sortable plainlinks"
-! width=150px | Website !! [[ArchiveBot]] !! Archive details %s
+! rowspan=2 width=150px | Website !! rowspan=2 | [[ArchiveBot]] !! colspan=4 | Archive details
+|-
+! Domain !! Job !! Date !! Size (MB) %s
 |}
 """ % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), totaljobsize/(1024.0*1024), rowsplain)
         before = wtext.split('<!-- bot -->')[0]
@@ -98,7 +98,6 @@ Do not edit this table, it is automatically updated by bot. There is a [[{{FULLP
             page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%0.1d MB)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), totaljobsize/(1024.0*1024)))
         else:
             print("No changes needed in", page.title())
-    
 
 if __name__ == '__main__':
     main()

@@ -111,13 +111,16 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
                     jobdate = re.findall(r"-(\d{8})-\d{6}-", rawjob)[0]
                 else:
                     jobdate = 'nodate'
+            if jobdate and jobdate != 'nodate':
+                jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
             if jobsize < 1024*1024:
-                jobdetails = "[https://archive.fart.website/archivebot/viewer/domain/%s %s] - [https://archive.fart.website/archivebot/viewer/job/%s %s] - %s - {{red|%0.1d&nbsp;MB}}" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
+                jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || {{red|%0.1d}}" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
             else:
-                jobdetails = "[https://archive.fart.website/archivebot/viewer/domain/%s %s] - [https://archive.fart.website/archivebot/viewer/job/%s %s] - %s - %0.1d&nbsp;MB" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
+                jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || %0.1d" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
             totaljobsize += jobsize
             details.append(jobdetails)
-    return '<br/>'.join(details), totaljobsize
+    detailsplain = '\n|-\n'.join(details)
+    return detailsplain, totaljobsize
 
 def getArchiveBotViewer(url=''):
     if url and '://' in url:

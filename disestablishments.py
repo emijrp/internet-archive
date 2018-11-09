@@ -126,6 +126,7 @@ def main():
                         viewer.append(getArchiveBotViewer(url=web))
                         if not web in outputlist:
                             outputlist.append(web)
+                        break #just 1 url
             
             if not websites:
                 continue
@@ -140,20 +141,18 @@ def main():
         totaljobsize = 0
         for row in rows:
             wtitle, q, p31, intro, cats, websites, viewer = row
-            
-            viewerplain = []
-            viewerdetailsplain = []
-            for v in viewer:
-                if v[0]:
-                    viewerplain.append("[%s {{saved}}]" % (v[1]))
-                    viewerdetailsplain.append(v[2])
-                else:
-                    viewerplain.append("[%s {{nosaved}}]" % (v[1]))
-                totaljobsize += v[3]
-            viewerplain = '<br/>'.join(viewerplain)
-            viewerdetailsplain = '<br/>'.join(viewerdetailsplain)
-            
-            rowsplain += "\n|-\n| '''[[:wikipedia:d:%s|%s]]''' || %s || %s%s || %s || %s || %s " % (q, wtitle, p31, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', websites and '<br/>'.join(websites) or '-', viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '-')
+            viewerplain = ''
+            viewerdetailsplain = ''
+            if viewer[0][0]:
+                viewerplain = "[%s {{saved}}]" % (viewer[0][1])
+                viewerdetailsplain = viewer[0][2]
+            else:
+                viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
+                viewerdetailsplain = ''
+            totaljobsize += viewer[0][3]
+            rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
+            rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
+            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s%s || %s%s || %s%s\n%s " % (rowspanplain, q, wtitle, rowspanplain, p31, rowspanplain, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', rowspanplain, websites and '<br/>'.join(websites) or '-', rowspanplain, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '| - || - || - || - ')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s disestablishments|Category:%s disestablishments]]'''. The websites for these entities could vanish in the foreseable future.
 
@@ -162,7 +161,9 @@ def main():
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
 {| class="wikitable sortable plainlinks"
-! Title !! Topic !! Description !! Website(s) !! width=100px | [[ArchiveBot]] !! Archive details %s
+! rowspan=2 | Title !! rowspan=2 | Topic !! rowspan=2 | Description !! rowspan=2 | Website !! rowspan=2 width=100px | [[ArchiveBot]] !! colspan=4 | Archive details
+|-
+! Domain !! Job !! Date !! Size (MB) %s
 |}
 
 {{Deathwatch}}

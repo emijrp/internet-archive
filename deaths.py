@@ -96,20 +96,18 @@ def main():
         totaljobsize = 0
         for row in rows:
             q, itemLabel, itemDescription, causeLabel, birthdate, deathdate, website, viewer = row
-            
-            viewerplain = []
-            viewerdetailsplain = []
-            for v in viewer:
-                if v[0]:
-                    viewerplain.append("[%s {{saved}}]" % (v[1]))
-                    viewerdetailsplain.append(v[2])
-                else:
-                    viewerplain.append("[%s {{notsaved}}]" % (v[1]))
-                totaljobsize += v[3]
-            viewerplain = '<br/>'.join(viewerplain)
-            viewerdetailsplain = '<br/>'.join(viewerdetailsplain)
-            
-            rowsplain += "\n|-\n| '''[[:wikipedia:d:%s|%s]]''' || %s || %s || %s || %s || %s || %s || %s " % (q, itemLabel, itemDescription, birthdate, deathdate, causeLabel, website, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '-')
+            viewerplain = ''
+            viewerdetailsplain = ''
+            if viewer[0][0]:
+                viewerplain = "[%s {{saved}}]" % (viewer[0][1])
+                viewerdetailsplain = viewer[0][2]
+            else:
+                viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
+                viewerdetailsplain = ''
+            totaljobsize += viewer[0][3]
+            rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
+            rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
+            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '| - || - || - || - ')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s deaths|Category:%s deaths]]'''. The websites for these entities could vanish in the foreseable future.
 
@@ -118,7 +116,9 @@ def main():
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
 {| class="wikitable sortable plainlinks"
-! width=150px | Name !! Description !! Birth date !! Death date !! Cause of death !! Website(s) !! width=100px | [[ArchiveBot]] !! Archive details %s
+! rowspan=2 width=150px | Name !! rowspan=2 | Description !! rowspan=2 | Birth date !! rowspan=2 | Death date !! rowspan=2 | Cause of death !! rowspan=2 | Website !! rowspan=2 width=100px | [[ArchiveBot]] !! colspan=4 | Archive details
+|-
+! Domain !! Job !! Date !! Size (MB) %s
 |}
 
 {{deathwatch}}
