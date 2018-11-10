@@ -75,7 +75,7 @@ def main():
             totaljobsize += viewer[0][3]
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
-            rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, website, rowspanplain, viewerplain and viewerplain or '-', viewerdetailsplain and viewerdetailsplain or '| - || - || - || - ')
+            rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
             c += 1
         
         output = """
