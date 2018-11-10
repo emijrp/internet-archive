@@ -37,6 +37,9 @@ def main():
         wtitle = page.title()
         wtext = page.text
         
+        #if not 'Reddit' in wtitle:
+        #    continue
+        
         if not wtitle.startswith('ArchiveBot/'):
             continue
         wlist = pywikibot.Page(atsite, '%s/list' % (wtitle))
@@ -84,7 +87,7 @@ def main():
 Do not edit this table, it is automatically updated by bot. There is a [[{{FULLPAGENAME}}/list|raw list]] of URLs that you can edit.
 
 {| class="wikitable sortable plainlinks"
-! rowspan=2 width=150px | Website !! rowspan=2 | [[ArchiveBot]] !! colspan=4 | Archive details
+! rowspan=2 | Website !! rowspan=2 | [[ArchiveBot]] !! colspan=4 | Archive details
 |-
 ! Domain !! Job !! Date !! Size (MB) %s
 |}
