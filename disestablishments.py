@@ -156,19 +156,19 @@ def main():
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s disestablishments|Category:%s disestablishments]]'''. The websites for these entities could vanish in the foreseable future.
 
-* '''Statistics''': {{saved}} (%s){{·}} {{nosaved}} (%s){{·}} Total size (%0.1d&nbsp;MB)
+* '''Statistics''': {{saved}} (%s){{·}} {{nosaved}} (%s){{·}} Total size (%s)
 
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
 {| class="wikitable sortable plainlinks"
 ! rowspan=2 | Title !! rowspan=2 | Topic !! rowspan=2 | Description !! rowspan=2 | Website !! rowspan=2 width=100px | [[ArchiveBot]] !! colspan=4 | Archive details
 |-
-! Domain !! Job !! Date !! Size (MB) %s
+! Domain !! Job !! Date !! Size %s
 |}
 
 {{Deathwatch}}
 
-[[Category:Archive Team]]""" % (year, year, len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), totaljobsize/(1024.0*1024), rowsplain)
+[[Category:Archive Team]]""" % (year, year, len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), convertsize(b=totaljobsize), rowsplain)
         print(output)
         
         page = pywikibot.Page(atsite, "Disestablishments in %s" % (year))
@@ -176,7 +176,7 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
             len(re.findall(r'{{nosaved}}', page.text)) != len(re.findall(r'{{nosaved}}', output)):
             pywikibot.showDiff(page.text, output)
             page.text = output
-            page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s), Total size (%0.1d MB)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), totaljobsize/(1024.0*1024)))
+            page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), convertsize(b=totaljobsize)))
         else:
             print("No changes needed in", page.title())
         

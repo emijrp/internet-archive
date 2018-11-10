@@ -28,6 +28,20 @@ import urllib.parse
 
 cached = {}
 
+def convertsize(b=0): #bytes
+    if b < 1024: #<1KB
+        return '0&nbsp;KB'
+    elif b < 1024*1024: #<1MB
+        return '%d&nbsp;KB' % (b/(1024))
+    elif b < 1024*1024*1024: #<1GB
+        return '%d&nbsp;MB' % (b/(1024*1024))
+    elif b < 1024*1024*1024*1024: #<1TB
+        return '%d&nbsp;GB' % (b/(1024*1024*1024))
+    elif b < 1024*1024*1024*1024*1024: #<1PB
+        return '%d&nbsp;TB' % (b/(1024*1024*1024*1024))
+    elif b < 1024*1024*1024*1024*1024*1024: #<1EB
+        return '%d&nbsp;PB' % (b/(1024*1024*1024*1024*1024))
+
 def getURL(url='', cache=False):
     global cached
     
@@ -113,10 +127,10 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
                     jobdate = 'nodate'
             if jobdate and jobdate != 'nodate':
                 jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
-            if jobsize < 1024*1024:
-                jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || {{red|%0.1d}}" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
+            if jobsize < 1024:
+                jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
             else:
-                jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || %0.1d" % (domain, domain, job, job, jobdate, jobsize/(1024.0*1024))
+                jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | %s" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
             totaljobsize += jobsize
             details.append(jobdetails)
     detailsplain = '\n|-\n'.join(details)

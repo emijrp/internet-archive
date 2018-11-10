@@ -37,8 +37,8 @@ def main():
         wtitle = page.title()
         wtext = page.text
         
-        #if not 'Reddit' in wtitle:
-        #    continue
+        if not 'Reddit' in wtitle:
+            continue
         
         if not wtitle.startswith('ArchiveBot/'):
             continue
@@ -82,23 +82,23 @@ def main():
             c += 1
         
         output = """
-* '''Statistics''': {{saved}} (%s){{·}} {{notsaved}} (%s){{·}} Total size (%0.1d&nbsp;MB)
+* '''Statistics''': {{saved}} (%s){{·}} {{notsaved}} (%s){{·}} Total size (%s)
 
 Do not edit this table, it is automatically updated by bot. There is a [[{{FULLPAGENAME}}/list|raw list]] of URLs that you can edit.
 
 {| class="wikitable sortable plainlinks"
 ! rowspan=2 | Website !! rowspan=2 | [[ArchiveBot]] !! colspan=4 | Archive details
 |-
-! Domain !! Job !! Date !! Size (MB) %s
+! Domain !! Job !! Date !! Size %s
 |}
-""" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), totaljobsize/(1024.0*1024), rowsplain)
+""" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize), rowsplain)
         before = wtext.split('<!-- bot -->')[0]
         after = wtext.split('<!-- /bot -->')[1]
         newtext = '%s<!-- bot -->%s<!-- /bot -->%s' % (before, output, after)
         if wtext != newtext:
             pywikibot.showDiff(wtext, newtext)
             page.text = newtext
-            page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%0.1d MB)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), totaljobsize/(1024.0*1024)))
+            page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
         else:
             print("No changes needed in", page.title())
 
