@@ -63,7 +63,7 @@ def main():
     for year in years:
         outputlist = []
         category = pywikibot.Category(enwpsite, "Category:%s disestablishments" % (year))
-        gen = pagegenerators.CategorizedPageGenerator(category=category, start=start, namespaces=[0], recurse=2)
+        gen = pagegenerators.CategorizedPageGenerator(category=category, start=start, namespaces=[0], recurse=4)
         pre = pagegenerators.PreloadingGenerator(gen, pageNumber=50)
         
         rows = []
