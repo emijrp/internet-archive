@@ -156,7 +156,7 @@ def main():
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s disestablishments|Category:%s disestablishments]]'''. The websites for these entities could vanish in the foreseable future.
 
-* '''Statistics''': {{saved}} (%s){{·}} {{nosaved}} (%s){{·}} Total size (%s)
+* '''Statistics''': {{saved}} (%s){{·}} {{notsaved}} (%s){{·}} Total size (%s)
 
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
@@ -168,15 +168,15 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
 
 {{Deathwatch}}
 
-[[Category:Archive Team]]""" % (year, year, len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), convertsize(b=totaljobsize), rowsplain)
+[[Category:Archive Team]]""" % (year, year, len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize), rowsplain)
         print(output)
         
         page = pywikibot.Page(atsite, "Disestablishments in %s" % (year))
         if len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)) or \
-            len(re.findall(r'{{nosaved}}', page.text)) != len(re.findall(r'{{nosaved}}', output)):
+            len(re.findall(r'{{notsaved}}', page.text)) != len(re.findall(r'{{notsaved}}', output)):
             pywikibot.showDiff(page.text, output)
             page.text = output
-            page.save("BOT - Updating page: {{saved}} (%s), {{nosaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{nosaved}}', rowsplain)), convertsize(b=totaljobsize)))
+            page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
         else:
             print("No changes needed in", page.title())
         
