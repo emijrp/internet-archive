@@ -36,11 +36,11 @@ def convertsize(b=0): #bytes
     elif b < 1024*1024*1024: #<1GB
         return '%d&nbsp;MB' % (b/(1024*1024))
     elif b < 1024*1024*1024*1024: #<1TB
-        return '%d&nbsp;GB' % (b/(1024*1024*1024))
+        return '%.1f&nbsp;GB' % (b/(1024.0*1024*1024))
     elif b < 1024*1024*1024*1024*1024: #<1PB
-        return '%d&nbsp;TB' % (b/(1024*1024*1024*1024))
+        return '%.1f&nbsp;TB' % (b/(1024.0*1024*1024*1024))
     elif b < 1024*1024*1024*1024*1024*1024: #<1EB
-        return '%d&nbsp;PB' % (b/(1024*1024*1024*1024*1024))
+        return '%.1f&nbsp;PB' % (b/(1024.0*1024*1024*1024*1024))
 
 def getURL(url='', cache=False):
     global cached
