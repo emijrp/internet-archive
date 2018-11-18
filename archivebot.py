@@ -27,6 +27,18 @@ import pywikibot.pagegenerators as pagegenerators
 
 from archiveteamfun import *
 
+def curateurls(urls=[]):
+    urls2 = []
+    for url in urls:
+        url2 = url.strip()
+        if url2.startswith('http'):
+            if '://' in url2 and not '/' in url2.split('://')[1]:
+                url2 = url2 + "/"
+        urls2.append(url2)
+    urls2 = list(set(urls2)) #remove dupes
+    urls2.sort()
+    return urls2
+
 def main():
     atsite = pywikibot.Site('archiveteam', 'archiveteam')
     cat = pywikibot.Category(atsite, "Category:ArchiveBot")
@@ -46,12 +58,10 @@ def main():
         if not wlist.exists():
             print("Page %s/list doesnt exist" % (wtitle))
             continue
-        raw = wlist.text.strip().splitlines()
-        raw = list(set(raw)) #remove dupes
-        raw.sort()
-        raw = '\n'.join(raw)
-        if wlist.text != raw:
-            wlist.text = raw
+        urls = curateurls(urls=wlist.text.strip().splitlines())
+        urls = '\n'.join(urls)
+        if wlist.text != urls:
+            wlist.text = urls
             wlist.save("BOT - Sorting list")
         
         print('\n===', wtitle, '===')
