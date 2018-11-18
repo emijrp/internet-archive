@@ -108,6 +108,14 @@ def getPhotoTitle(xml=''):
     root = ET.fromstring(xml)
     return root[0].findall('title')[0].text
 
+def getPhotoTags(xml=''):
+    root = ET.fromstring(xml)
+    phototags = []
+    for tags in root[0].findall('tags'):
+        for tag in tags.findall('tag'):
+            phototags.append(tag.get('raw'))
+    return phototags
+
 def getUserInfoXML(flickr='', user_id=''):
     resp = flickr.people.getInfo(user_id=user_id)
     xml = ET.tostring(resp, method='xml')
@@ -169,6 +177,8 @@ def main():
         print(len(photosets.keys()), "sets found for", userid)
         zips = []
         rows = []
+        tags = []
+        c = 1
         for photoset, photosetprops in photosets.items():
             print(photoset, photosetprops['title'], photosetprops['description'])
             flickrseturl = 'https://www.flickr.com/photos/%s/sets/%s' % (userid, photoset)
@@ -190,6 +200,7 @@ def main():
                 saveXML(xml=xml, filename=photoxmlfilename)
                 if photo == photosetprops['primary']:
                     download(url=photoprops['url_sq'], filename='thumb.jpg')
+                tags += getPhotoTags(xml=xml)
             
             #zip
             photosetzipfilename = '%s.zip' % (photosetdirname)
@@ -201,7 +212,9 @@ def main():
             row = '<tr><td><a href="%s">%s</a>%s</td><td><a href="../download/%s/%s">%s</a></td><td><a href="../download/%s/%s/"><img src="../download/%s/%s/thumb.jpg" /></a></td></tr>' % (flickrseturl, photosetprops['title'], photosetprops['description'] and ' - <i>%s</i>' % (photosetprops['description']) or '', itemid, photosetzipfilename, len(photos.keys()), itemid, photosetzipfilename, itemid, photosetzipfilename)
             rows.append(row)
             
-            break #test
+            c -= 1
+            if c < 1:
+                break
         
         xml = getUserInfoXML(flickr=flickr, user_id=userid)
         saveXML(xml=xml, filename='userinfo.xml')
@@ -210,7 +223,17 @@ def main():
         itemtitle = "" # use itemid by default
         itemdate = datetime.datetime.now().strftime("%Y-%m-%d")
         itemoriginalurl = 'https://www.flickr.com/photos/%s/' % (userid)
+        tagsdict = {}
+        for tag in tags:
+            if tag in tagsdict:
+                tagsdict[tag] += 1
+            else:
+                tagsdict[tag] = 1
+        tagslist = [[freq, tag] for tag, freq in tagsdict.items()]
+        tagslist.sort(reverse=True)
         itemtags = ['Flickr', 'images', ]
+        for freq, tag in tagslist[:100-len(itemtags)]:
+            itemtags.append(tag)
         itemdesc = 'Images by Flickr user <a href="%s">%s</a>' % (itemoriginalurl, userid)
         userpathalias = getUserPathalias(flickr=flickr, user_id=userid)
         if userpathalias:
@@ -221,14 +244,14 @@ def main():
         userrealname = getUserRealname(flickr=flickr, user_id=userid)
         if userrealname:
             itemdesc += " / " + userrealname
-        itemdesc += ".\n\n<table>\n<tr><th>Set</th><th>Files</th><th>Thumb</th></tr>\n%s\n</table>" % ('\n'.join(rows))
+        itemdesc += '.\n\n<table style="border: 1px solid grey;">\n<tr><th>Set</th><th>Files</th><th>Thumb</th></tr>\n%s\n</table>' % ('\n'.join(rows))
         print(itemdesc)
         md = {
             'mediatype': 'images', 
             #'collection': 'opensource_image', 
-            'collection': 'opensource_movies', 
+            'collection': 'opensource_media', 
             'creator': itemoriginalurl, 
-            'title': itemtitle, 
+            #'title': itemtitle, 
             'description': itemdesc, 
             'last-updated-date': itemdate, 
             'subject': '; '.join(itemtags), 
@@ -238,7 +261,7 @@ def main():
         item = get_item(itemid)
         files = zips + ['userinfo.xml']
         item.upload(files=files, metadata=md, verbose=True, queue_derive=True)
-        item.modify_metadata(md)
+        item.modify_metadata(metadata=md)
         with open('item.desc', 'w') as f:
             f.write(itemdesc)
         print('You can find it in https://archive.org/details/%s' % (itemid))
