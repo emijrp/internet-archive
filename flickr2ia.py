@@ -18,30 +18,130 @@
 import csv
 import datetime
 import json
+import os
 import re
+import subprocess
 import sys
 import time
+import unicodedata
 import urllib
+import urllib.request
 from xml.etree import ElementTree as ET # para ver los XMl que devuelve flickrapi con ET.dump(resp)
 
 import flickrapi
+from internetarchive import upload
+from internetarchive import get_item
 
-usertosave = '96396586@N07' #it isn't secret, don't worry
-mode = 'usersetzip' #usersetzip (1 item per user, all sets in different zips in the same item); set (1 item per set); all (1 item per image or video)
+"""
+Installation:
+* virtualenv -p python3 flickr2ia
+* cd flickr2ia
+* source bin/activate
+* pip install internetarchive
+* ia configure
+* pip install flickrapi
+* Register an APP in https://www.flickr.com/services/apps/create/apply
+* Save apikey and apisecret codes in flickr.token file in the same path of this script
+* Run this script: python flickr2ia.py USERID MODE
+"""
 
-def getUserPhotosetIds(flickr='', user_id=''):
-    userphotosetids = []
+fslimit = 80 #max length to avoid filesystem issues
+userid = '96396586@N07' #it isn't secret, don't worry
+mode = 'usersetzips' #usersetzips (1 item per user, all sets in different zips in the same item); set (1 item per set); all (1 item per image or video)
+
+def plain(s=''):
+    s = ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+    s = re.sub(r'(?i)[^a-z0-9-]', ' ', s)
+    s = re.sub(r'  +', ' ', s.strip())
+    s = re.sub(r' ', '_', s.strip())
+    return s[:fslimit]
+
+def getUserPhotosets(flickr='', user_id=''):
+    photosets = {}
     page = 1
     pages = 1
     while page <= pages:
         resp = flickr.photosets.getList(user_id=user_id, page=page)
-        xmlraw = ET.tostring(resp, method='xml').decode('utf-8')
-        pages = int(re.findall(r' pages="(\d+)"', xmlraw)[0])
-        userphotosetids += re.findall(r' id="(\d+)"', xmlraw)
+        root = ET.fromstring(ET.tostring(resp, method='xml'))
+        for photoset in root[0].findall('photoset'):
+            photosets[photoset.get('id')] = {
+                'title': photoset.find('title').text, 
+                'description': photoset.find('description').text, 
+                'primary': photoset.get('primary'), 
+            }
+        pages = int(root[0].get('pages'))
         page += 1
-    return userphotosetids
+    return photosets
+
+def getPhotosFromPhotoset(flickr='', user_id='', photoset_id=''):
+    privacy_filter = 1 # 1: Only public, see more https://www.flickr.com/services/api/flickr.photosets.getPhotos.html
+    photos = {}
+    page = 1
+    pages = 1
+    while page <= pages:
+        resp = flickr.photosets.getPhotos(photoset_id=photoset_id, user_id=user_id, privacy_filter=privacy_filter, extras='url_o,url_sq')
+        root = ET.fromstring(ET.tostring(resp, method='xml'))
+        for photo in root[0].findall('photo'):
+            photos[photo.get('id')] = {
+                'title': photo.get('title'), 
+                'url_o': photo.get('url_o'), 
+                'url_sq': photo.get('url_sq'), 
+            }
+        pages = int(root[0].get('pages'))
+        page += 1
+    return photos
+
+def getPhotoInfoXML(flickr='', photo_id=''):
+    resp = flickr.photos.getInfo(photo_id=photo_id)
+    xml = ET.tostring(resp, method='xml')
+    return xml
+
+def getPhotoOriginalFormat(xml=''):
+    root = ET.fromstring(xml)
+    return root[0].get('originalformat')
+
+def getPhotoId(xml=''):
+    root = ET.fromstring(xml)
+    return root[0].get('id')
+
+def getPhotoTitle(xml=''):
+    root = ET.fromstring(xml)
+    return root[0].findall('title')[0].text
+
+def getUserInfoXML(flickr='', user_id=''):
+    resp = flickr.people.getInfo(user_id=user_id)
+    xml = ET.tostring(resp, method='xml')
+    return xml
+
+def getUserPathalias(flickr='', user_id=''):
+    resp = flickr.people.getInfo(user_id=user_id)
+    root = ET.fromstring(ET.tostring(resp, method='xml'))
+    pathalias = root[0].get('path_alias')
+    return pathalias
+
+def getUserUsername(flickr='', user_id=''):
+    resp = flickr.people.getInfo(user_id=user_id)
+    root = ET.fromstring(ET.tostring(resp, method='xml'))
+    username = root[0].findall('username')[0].text
+    return username
+
+def getUserRealname(flickr='', user_id=''):
+    resp = flickr.people.getInfo(user_id=user_id)
+    root = ET.fromstring(ET.tostring(resp, method='xml'))
+    realname = root[0].findall('realname')[0].text
+    return realname
+
+def saveXML(xml='', filename=''):
+    print("Saving XML")
+    with open(filename, 'w') as f:
+        f.write(xml.decode('utf-8'))
+
+def download(url='', filename=''):
+    print("Downloading", url)
+    urllib.request.urlretrieve(url, filename)
 
 def main():
+    lenlimit = 80
     with open('flickr.token', 'r') as f:
         api_key, api_secret = f.read().strip().splitlines()
     
@@ -54,21 +154,97 @@ def main():
         verifier = input(u'Verifier code: ')
         flickr.get_access_token(verifier)
     
-    if mode == 'usersetzip':
-        print("Loading sets for user", usertosave)
-        photosetids = getUserPhotosetIds(flickr=flickr, user_id=usertosave)
-        print(len(photosetids), "sets found for", usertosave)
-        for photosetid in photosetids:
-            print(photosetid)
-            try: #error in set ids, broken sets?
-                resp2 = flickr.photosets.getPhotos(photoset_id=photosetid, user_id=usertosave) #, extras='date_taken')
-            except:
-                continue
-            xmlraw2 = ET.tostring(resp2, method='xml').decode('utf-8')
-            photoids = re.findall(r'(?im) id="(\d+)"', xmlraw2)
-            print(len(photoids), "files")
-            time.sleep(0.2)
+    if not os.path.exists(userid):
+        os.mkdir(userid)
+    os.chdir(userid)
+    print('Changed directory to', os.getcwd())
+    
+    if mode == 'usersetzips':
+        userid_ = re.sub('@', '_', userid)
+        itemid = "Flickr-user-%s" % (userid_)
         
+        #download all the sets for this user
+        print("Loading sets for user", userid)
+        photosets = getUserPhotosets(flickr=flickr, user_id=userid)
+        print(len(photosets.keys()), "sets found for", userid)
+        zips = []
+        rows = []
+        for photoset, photosetprops in photosets.items():
+            print(photoset, photosetprops['title'], photosetprops['description'])
+            flickrseturl = 'https://www.flickr.com/photos/%s/sets/%s' % (userid, photoset)
+            photosetdirname = '%s-%s' % (plain(photosetprops['title']), photoset)
+            
+            if not os.path.exists(photosetdirname):
+                os.mkdir(photosetdirname)
+            os.chdir(photosetdirname)
+            print('Changed directory to', os.getcwd())
+            
+            #download all the photos for this set
+            photos = getPhotosFromPhotoset(flickr=flickr, user_id=userid, photoset_id=photoset)
+            print(len(photos.keys()), "files")
+            for photo, photoprops in photos.items():
+                xml = getPhotoInfoXML(flickr=flickr, photo_id=photo)
+                photofilename = '%s-%s.%s' % (plain(getPhotoTitle(xml=xml)), getPhotoId(xml=xml), getPhotoOriginalFormat(xml=xml))
+                photoxmlfilename = '%s-%s.xml' % (plain(getPhotoTitle(xml=xml)), getPhotoId(xml=xml))
+                download(url=photoprops['url_o'], filename=photofilename)
+                saveXML(xml=xml, filename=photoxmlfilename)
+                if photo == photosetprops['primary']:
+                    download(url=photoprops['url_sq'], filename='thumb.jpg')
+            
+            #zip
+            photosetzipfilename = '%s.zip' % (photosetdirname)
+            subprocess.call('zip' + ' -r ../%s *' % (photosetzipfilename), shell=True)
+            zips.append(photosetzipfilename)
+            os.chdir('..')
+            print('Changed directory to', os.getcwd())
+            
+            row = '<tr><td><a href="%s">%s</a>%s</td><td><a href="../download/%s/%s">%s</a></td><td><a href="../download/%s/%s/"><img src="../download/%s/%s/thumb.jpg" /></a></td></tr>' % (flickrseturl, photosetprops['title'], photosetprops['description'] and ' - <i>%s</i>' % (photosetprops['description']) or '', itemid, photosetzipfilename, len(photos.keys()), itemid, photosetzipfilename, itemid, photosetzipfilename)
+            rows.append(row)
+            
+            break #test
+        
+        xml = getUserInfoXML(flickr=flickr, user_id=userid)
+        saveXML(xml=xml, filename='userinfo.xml')
+        
+        #upload to IA
+        itemtitle = "" # use itemid by default
+        itemdate = datetime.datetime.now().strftime("%Y-%m-%d")
+        itemoriginalurl = 'https://www.flickr.com/photos/%s/' % (userid)
+        itemtags = ['Flickr', 'images', ]
+        itemdesc = 'Images by Flickr user <a href="%s">%s</a>' % (itemoriginalurl, userid)
+        userpathalias = getUserPathalias(flickr=flickr, user_id=userid)
+        if userpathalias:
+            itemdesc += " / " + userpathalias
+        userusername = getUserUsername(flickr=flickr, user_id=userid)
+        if userusername:
+            itemdesc += " / " + userusername
+        userrealname = getUserRealname(flickr=flickr, user_id=userid)
+        if userrealname:
+            itemdesc += " / " + userrealname
+        itemdesc += ".\n\n<table>\n<tr><th>Set</th><th>Files</th><th>Thumb</th></tr>\n%s\n</table>" % ('\n'.join(rows))
+        print(itemdesc)
+        md = {
+            'mediatype': 'images', 
+            #'collection': 'opensource_image', 
+            'collection': 'opensource_movies', 
+            'creator': itemoriginalurl, 
+            'title': itemtitle, 
+            'description': itemdesc, 
+            'last-updated-date': itemdate, 
+            'subject': '; '.join(itemtags), 
+            #'licenseurl': itemlicenseurl, 
+            'originalurl': itemoriginalurl, 
+        }
+        item = get_item(itemid)
+        files = zips + ['userinfo.xml']
+        item.upload(files=files, metadata=md, verbose=True, queue_derive=True)
+        item.modify_metadata(md)
+        with open('item.desc', 'w') as f:
+            f.write(itemdesc)
+        print('You can find it in https://archive.org/details/%s' % (itemid))
+    
+    os.chdir('..')
+    print('Changed directory to', os.getcwd())
 
 if __name__ == '__main__':
     main()
