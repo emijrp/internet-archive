@@ -247,6 +247,7 @@ def main():
         rows = []
         tags = []
         photosinset = []
+        photoswithoutaset = []
         for photoset, photosetprops in photosets:
             print(photoset, photosetprops['title'], photosetprops['description'])
             flickrseturl = 'https://www.flickr.com/photos/%s/sets/%s' % (userid, photoset)
@@ -259,7 +260,7 @@ def main():
             if photoset:
                 row = '<tr><td><a href="%s">%s</a>%s</td><td><a href="../download/%s/%s">%s</a></td><td><a href="../download/%s/%s/"><img src="../download/%s/%s/thumb.jpg" /></a></td></tr>' % (flickrseturl, photosetprops['title'], photosetprops['description'] and ' - <i>%s</i>' % (photosetprops['description']) or '', itemid, photosetzipfilename, photosetprops['numphotos']+photosetprops['numvideos'], itemid, photosetzipfilename, itemid, photosetzipfilename)
             else:
-                row = '<tr><td>%s</td><td><a href="../download/%s/%s">%s</a></td><td><a href="../download/%s/%s/"><img src="../download/%s/%s/thumb.jpg" /></a></td></tr>' % (photosetprops['title'], itemid, photosetzipfilename, 0, itemid, photosetzipfilename, itemid, photosetzipfilename)
+                row = '<tr><td>No set</td><td><a href="../download/%s/%s">PHOTOSWITHOUTASET</a></td><td><a href="../download/%s/%s/">No set</a></td></tr>' % (itemid, photosetzipfilename, itemid, photosetzipfilename)
             rows.append(row)
             
             if os.path.exists(photosetzipfilename) and resume:
@@ -329,6 +330,7 @@ def main():
         if userrealname:
             itemdesc += " / " + userrealname
         itemdesc += '.\n\nImages metadata in .xml files.\n\n<table style="border: 1px solid grey;">\n<tr><th>Set</th><th>Files</th><th>Thumb</th></tr>\n%s\n</table>' % ('\n'.join(rows))
+        itemdesc = re.sub('PHOTOSWITHOUTASET', str(len(photoswithoutaset)), itemdesc)
         #print(itemdesc)
         md = {
             'mediatype': 'images', 
