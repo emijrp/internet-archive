@@ -85,7 +85,7 @@ def getAllPhotosFromUser(flickr='', user_id=''):
     page = 1
     pages = 1
     while page <= pages:
-        resp = flickr.people.getPublicPhotos(user_id=user_id, extras='url_o,url_sq,url_m') #only public ones
+        resp = flickr.people.getPublicPhotos(user_id=user_id, extras='url_o,url_sq,url_m', page=page) #only public ones
         root = ET.fromstring(ET.tostring(resp, method='xml'))
         for photo in root[0].findall('photo'):
             photos[photo.get('id')] = {
@@ -104,7 +104,7 @@ def getPhotosFromPhotoset(flickr='', user_id='', photoset_id=''):
     page = 1
     pages = 1
     while page <= pages:
-        resp = flickr.photosets.getPhotos(photoset_id=photoset_id, user_id=user_id, privacy_filter=privacy_filter, extras='url_o,url_sq,url_m')
+        resp = flickr.photosets.getPhotos(photoset_id=photoset_id, user_id=user_id, privacy_filter=privacy_filter, extras='url_o,url_sq,url_m', page=page)
         root = ET.fromstring(ET.tostring(resp, method='xml'))
         for photo in root[0].findall('photo'):
             photos[photo.get('id')] = {
