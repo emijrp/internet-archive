@@ -121,6 +121,7 @@ def getPhotoInfoXML(flickr='', photo_id=''):
     try:
         resp = flickr.photos.getInfo(photo_id=photo_id)
     except:
+        print('Error retrieving XML, retrying...')
         time.sleep(10)
         resp = flickr.photos.getInfo(photo_id=photo_id)
     xml = ET.tostring(resp, method='xml')
