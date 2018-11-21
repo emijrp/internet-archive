@@ -69,7 +69,7 @@ def getUserPhotosets(flickr='', user_id=''):
         for photoset in root[0].findall('photoset'):
             photosets.append([photoset.get('id'), {
                 'title': photoset.find('title').text, 
-                'description': photoset.find('description').text, 
+                'description': re.sub(r'  *', ' ', re.sub(r'\n', ' ', photoset.find('description').text)), 
                 'primary': photoset.get('primary'), 
                 'numphotos': int(photoset.get('photos')), 
                 'numvideos': int(photoset.get('videos')), 
@@ -118,7 +118,11 @@ def getPhotosFromPhotoset(flickr='', user_id='', photoset_id=''):
     return photos
 
 def getPhotoInfoXML(flickr='', photo_id=''):
-    resp = flickr.photos.getInfo(photo_id=photo_id)
+    try:
+        resp = flickr.photos.getInfo(photo_id=photo_id)
+    except:
+        time.sleep(10)
+        resp = flickr.photos.getInfo(photo_id=photo_id)
     xml = ET.tostring(resp, method='xml')
     return xml
 
@@ -264,6 +268,7 @@ def main():
         photosinset = []
         photoswithoutaset = []
         for photoset, photosetprops in photosets:
+            time.sleep(1)
             print(photoset, photosetprops['title'], photosetprops['description'])
             flickrseturl = 'https://www.flickr.com/photos/%s/sets/%s' % (userid, photoset)
             if photoset:
