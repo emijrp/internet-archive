@@ -193,6 +193,12 @@ def generateTags(tags=[]):
     itemtags += itemtags2
     return itemtags
 
+def getUseridFromURL(flickr='', url=''):
+    resp = flickr.urls.lookupUser(url=url)
+    root = ET.fromstring(ET.tostring(resp, method='xml'))
+    userid = root[0].get('id')
+    return userid
+
 def main():
     #parse params
     userid = ''
@@ -228,6 +234,15 @@ def main():
         print(authorize_url)
         verifier = input(u'Verifier code: ')
         flickr.get_access_token(verifier)
+    
+    if not '@' in userid:
+        if '://' in userid:
+            url = userid
+            userid = getUseridFromURL(flickr=flickr, url=url)
+            print('Extracted userid', userid, 'from', url)
+        else:
+            print('userid format unknown, required ID@NXX or link to gallery')
+            sys.exit()
     
     #create download directory
     if not os.path.exists(userid):
