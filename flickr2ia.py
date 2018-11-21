@@ -85,7 +85,12 @@ def getAllPhotosFromUser(flickr='', user_id=''):
     page = 1
     pages = 1
     while page <= pages:
-        resp = flickr.people.getPublicPhotos(user_id=user_id, extras='url_o,url_sq,url_m', page=page) #only public ones
+        try:
+            resp = flickr.people.getPublicPhotos(user_id=user_id, extras='url_o,url_sq,url_m', page=page) #only public ones
+        except:
+            print('Error retrieving XML, retrying...')
+            time.sleep(10)
+            resp = flickr.people.getPublicPhotos(user_id=user_id, extras='url_o,url_sq,url_m', page=page) #only public ones
         root = ET.fromstring(ET.tostring(resp, method='xml'))
         for photo in root[0].findall('photo'):
             photos[photo.get('id')] = {
@@ -104,7 +109,12 @@ def getPhotosFromPhotoset(flickr='', user_id='', photoset_id=''):
     page = 1
     pages = 1
     while page <= pages:
-        resp = flickr.photosets.getPhotos(photoset_id=photoset_id, user_id=user_id, privacy_filter=privacy_filter, extras='url_o,url_sq,url_m', page=page)
+        try:
+            resp = flickr.photosets.getPhotos(photoset_id=photoset_id, user_id=user_id, privacy_filter=privacy_filter, extras='url_o,url_sq,url_m', page=page)
+        except:
+            print('Error retrieving XML, retrying...')
+            time.sleep(10)
+            resp = flickr.photosets.getPhotos(photoset_id=photoset_id, user_id=user_id, privacy_filter=privacy_filter, extras='url_o,url_sq,url_m', page=page)
         root = ET.fromstring(ET.tostring(resp, method='xml'))
         for photo in root[0].findall('photo'):
             photos[photo.get('id')] = {
@@ -301,6 +311,7 @@ def main():
                     photos = getPhotosFromPhotoset(flickr=flickr, user_id=userid, photoset_id=photoset)
                     print(len(photos.keys()), "files in set")
                     for photo, photoprops in photos.items():
+                        time.sleep(0.1)
                         xml = getPhotoInfoXML(flickr=flickr, photo_id=photo)
                         photofilename = '%s-%s.%s' % (plain(getPhotoTitle(xml=xml)), getPhotoId(xml=xml), getPhotoOriginalFormat(xml=xml))
                         photoxmlfilename = '%s-%s.xml' % (plain(getPhotoTitle(xml=xml)), getPhotoId(xml=xml))
