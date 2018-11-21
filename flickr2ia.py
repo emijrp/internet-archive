@@ -44,7 +44,7 @@ Installation:
 * pip install flickrapi
 * Register an APP in https://www.flickr.com/services/apps/create/apply
 * Save apikey and apisecret codes in flickr.token file in the same path of this script
-* Run this script: python flickr2ia.py USERID MODE
+* Run this script: python flickr2ia.py --userid=userid/url (you can --resume)
 """
 
 fslimit = 80 #max length to avoid filesystem issues
@@ -64,12 +64,16 @@ def getUserPhotosets(flickr='', user_id=''):
     page = 1
     pages = 1
     while page <= pages:
-        resp = flickr.photosets.getList(user_id=user_id, page=page)
+        try:
+            resp = flickr.photosets.getList(user_id=user_id, page=page)
+        except:
+            print(resp)
+            sys.exit()
         root = ET.fromstring(ET.tostring(resp, method='xml'))
         for photoset in root[0].findall('photoset'):
             photosets.append([photoset.get('id'), {
                 'title': photoset.find('title').text, 
-                'description': re.sub(r'  *', ' ', re.sub(r'\n', ' ', photoset.find('description').text)), 
+                'description': re.sub(r'  *', ' ', re.sub(r'\n', ' ', photoset.find('description').text or '')), 
                 'primary': photoset.get('primary'), 
                 'numphotos': int(photoset.get('photos')), 
                 'numvideos': int(photoset.get('videos')), 
