@@ -369,7 +369,7 @@ def main():
         itemdesc = re.sub('PHOTOSWITHOUTASET', str(len(photoswithoutaset)), itemdesc)
         #print(itemdesc)
         md = {
-            'mediatype': 'images', 
+            'mediatype': 'image', 
             'collection': 'opensource_media', 
         }
         md2 = {
@@ -385,12 +385,12 @@ def main():
         with open('itemdesc.txt', 'w') as f:
             f.write(itemdesc)
         item = get_item(itemid)
+        print("Uploading files...")
         zips = glob.glob("*.zip")
+        item.upload(files=zips, metadata=md, verbose=True, queue_derive=False)
         thumbs = glob.glob("*.jpg")
-        files = zips + thumbs + ['userinfo.xml', 'itemdesc.txt']
-        print("Uploading", files)
-        item.upload(files=files, metadata=md, verbose=True, queue_derive=False)
-        print("Adding metadata", md2)
+        item.upload(files=thumbs, metadata=md2, verbose=True, queue_derive=False)
+        item.upload(files=['userinfo.xml', 'itemdesc.txt'], metadata=md2, verbose=True, queue_derive=False)
         item.modify_metadata(md2)
         print('You can find it in https://archive.org/details/%s' % (itemid))
     
