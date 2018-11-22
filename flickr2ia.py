@@ -54,9 +54,11 @@ def plain(s=''):
     if not s: #None value?
         s = 'None'
     s = ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
-    s = re.sub(r'(?i)[^a-z0-9-]', ' ', s)
+    s = re.sub(r'(?i)[^a-z0-9]', ' ', s.strip())
     s = re.sub(r'  +', ' ', s.strip())
-    s = re.sub(r' ', '_', s.strip())
+    s = re.sub(r' ', '_', s.strip()).strip('_')
+    if not s:
+        s = 'None'
     return s[:fslimit]
 
 def getUserPhotosets(flickr='', user_id=''):
@@ -343,7 +345,8 @@ def main():
                             tags += getPhotoTags(xml=xml)
                 
                 #zip
-                subprocess.call('zip' + ' -r ../%s *' % (photosetzipfilename), shell=True)
+                if photosetzipfilename != 'noset.zip' or (photosetzipfilename == 'noset.zip' and photoswithoutaset):
+                    subprocess.call('zip' + ' -r ../%s *' % (photosetzipfilename), shell=True)
                 os.chdir('..')
                 print('Changed directory to', os.getcwd())
         
@@ -387,9 +390,9 @@ def main():
         item = get_item(itemid)
         print("Uploading files...")
         zips = glob.glob("*.zip")
-        item.upload(files=zips, metadata=md, verbose=True, queue_derive=False)
+        #item.upload(files=zips, metadata=md, verbose=True, queue_derive=False)
         thumbs = glob.glob("*.jpg")
-        item.upload(files=thumbs, metadata=md2, verbose=True, queue_derive=False)
+        #item.upload(files=thumbs, metadata=md2, verbose=True, queue_derive=False)
         item.upload(files=['userinfo.xml', 'itemdesc.txt'], metadata=md2, verbose=True, queue_derive=False)
         item.modify_metadata(md2)
         print('You can find it in https://archive.org/details/%s' % (itemid))
