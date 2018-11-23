@@ -256,14 +256,13 @@ def main():
         verifier = input(u'Verifier code: ')
         flickr.get_access_token(verifier)
     
-    if not '@' in userid:
-        if '://' in userid:
-            url = userid
-            userid = getUseridFromURL(flickr=flickr, url=url)
-            print('Extracted userid', userid, 'from', url)
-        else:
-            print('userid format unknown, required ID@NXX or link to gallery')
-            sys.exit()
+    if '://' in userid:
+        url = userid
+        userid = getUseridFromURL(flickr=flickr, url=url)
+        print('Extracted userid', userid, 'from', url)
+    elif not '@' in userid:
+        print('userid format unknown, required ID@NXX or link to gallery')
+        sys.exit()
     
     #create download directory
     if not os.path.exists(userid):
@@ -382,17 +381,18 @@ def main():
             'last-updated-date': itemdate, 
             #'licenseurl': itemlicenseurl, 
             'originalurl': itemoriginalurl, 
+            'subject': '; '.join(itemtags), 
         }
-        if len(itemtags) > 2:
-            md2['subject'] = '; '.join(itemtags)
         with open('itemdesc.txt', 'w') as f:
             f.write(itemdesc)
         item = get_item(itemid)
         print("Uploading files...")
         zips = glob.glob("*.zip")
-        #item.upload(files=zips, metadata=md, verbose=True, queue_derive=False)
+        if zips:
+            item.upload(files=zips, metadata=md, verbose=True, queue_derive=False)
         thumbs = glob.glob("*.jpg")
-        #item.upload(files=thumbs, metadata=md2, verbose=True, queue_derive=False)
+        if thumbs:
+            item.upload(files=thumbs, metadata=md2, verbose=True, queue_derive=False)
         item.upload(files=['userinfo.xml', 'itemdesc.txt'], metadata=md2, verbose=True, queue_derive=False)
         item.modify_metadata(md2)
         print('You can find it in https://archive.org/details/%s' % (itemid))
