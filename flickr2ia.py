@@ -358,7 +358,13 @@ def main():
                         xml = getPhotoInfoXML(flickr=flickr, photo_id=photo)
                         photofilename = '%s-%s.%s' % (plain(getPhotoTitle(xml=xml)), getPhotoId(xml=xml), getPhotoOriginalFormat(xml=xml))
                         photoxmlfilename = '%s-%s.xml' % (plain(getPhotoTitle(xml=xml)), getPhotoId(xml=xml))
-                        download(url=photoprops['url_o'], filename=photofilename)
+                        if photoprops['url_o']:
+                            download(url=photoprops['url_o'], filename=photofilename)
+                        else:
+                            print("Warning, original size not available. Downloading other resolution")
+                            if photofilename.endswith('.None'):
+                                photofilename = photofilename[:-5] + '.jpg'
+                            download(url=photoprops['url_m'], filename=photofilename)
                         saveXML(xml=xml, filename=photoxmlfilename)
                         #thumb in zip
                         if photo == photosetprops['primary']:
@@ -377,7 +383,13 @@ def main():
                             xml = getPhotoInfoXML(flickr=flickr, photo_id=photo)
                             photofilename = '%s-%s.%s' % (plain(getPhotoTitle(xml=xml)), getPhotoId(xml=xml), getPhotoOriginalFormat(xml=xml))
                             photoxmlfilename = '%s-%s.xml' % (plain(getPhotoTitle(xml=xml)), getPhotoId(xml=xml))
-                            download(url=photoprops['url_o'], filename=photofilename)
+                            if photoprops['url_o']:
+                                download(url=photoprops['url_o'], filename=photofilename)
+                            else:
+                                print("Warning, original size not available. Downloading other resolution")
+                                if photofilename.endswith('.None'):
+                                    photofilename = photofilename[:-5] + '.jpg'
+                                download(url=photoprops['url_m'], filename=photofilename)
                             saveXML(xml=xml, filename=photoxmlfilename)
                             tags += getPhotoTags(xml=xml)
                 
