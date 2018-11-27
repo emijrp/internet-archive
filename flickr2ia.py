@@ -34,6 +34,8 @@ import flickrapi
 from internetarchive import upload
 from internetarchive import get_item
 
+from archiveteamfun import *
+
 """
 Installation:
 * virtualenv -p python3 flickr2ia
@@ -164,24 +166,44 @@ def getPhotoTags(xml=''):
     return phototags
 
 def getUserInfoXML(flickr='', user_id=''):
-    resp = flickr.people.getInfo(user_id=user_id)
+    try:
+        resp = flickr.people.getInfo(user_id=user_id)
+    except:
+        print('Error retrieving XML, retrying...')
+        time.sleep(10)
+        resp = flickr.people.getInfo(user_id=user_id)
     xml = ET.tostring(resp, method='xml')
     return xml
 
 def getUserPathalias(flickr='', user_id=''):
-    resp = flickr.people.getInfo(user_id=user_id)
+    try:
+        resp = flickr.people.getInfo(user_id=user_id)
+    except:
+        print('Error retrieving XML, retrying...')
+        time.sleep(10)
+        resp = flickr.people.getInfo(user_id=user_id)
     root = ET.fromstring(ET.tostring(resp, method='xml'))
     pathalias = root[0].get('path_alias')
     return pathalias
 
 def getUserUsername(flickr='', user_id=''):
-    resp = flickr.people.getInfo(user_id=user_id)
+    try:
+        resp = flickr.people.getInfo(user_id=user_id)
+    except:
+        print('Error retrieving XML, retrying...')
+        time.sleep(10)
+        resp = flickr.people.getInfo(user_id=user_id)
     root = ET.fromstring(ET.tostring(resp, method='xml'))
     username = root[0].findall('username')[0].text
     return username
 
 def getUserRealname(flickr='', user_id=''):
-    resp = flickr.people.getInfo(user_id=user_id)
+    try:
+        resp = flickr.people.getInfo(user_id=user_id)
+    except:
+        print('Error retrieving XML, retrying...')
+        time.sleep(10)
+        resp = flickr.people.getInfo(user_id=user_id)
     root = ET.fromstring(ET.tostring(resp, method='xml'))
     realname = root[0].findall('realname')
     if realname:
@@ -215,7 +237,12 @@ def generateTags(tags=[]):
     return itemtags
 
 def getUseridFromURL(flickr='', url=''):
-    resp = flickr.urls.lookupUser(url=url)
+    try:
+        resp = flickr.urls.lookupUser(url=url)
+    except:
+        print('Error retrieving XML, retrying...')
+        time.sleep(10)
+        resp = flickr.urls.lookupUser(url=url)
     root = ET.fromstring(ET.tostring(resp, method='xml'))
     userid = root[0].get('id')
     return userid
@@ -264,23 +291,36 @@ def main():
         print('userid format unknown, required ID@NXX or link to gallery')
         sys.exit()
     
-    #create download directory
-    if not os.path.exists(userid):
-        os.mkdir(userid)
-    os.chdir(userid)
-    print('Changed directory to', os.getcwd())
-    
     #which mode?
     if mode == 'usersetzips':
         userid_ = re.sub('@', '_', userid)
         itemid = "Flickr-user-%s" % (userid_)
+        
+        #check if exists on IA
+        itemurl = 'https://archive.org/details/' + itemid
+        itemurlraw = 'Item cannot be found'
+        req = urllib.request.Request(itemurl, headers={ 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0' })
+        try:
+            print("Retrieving: %s" % (itemurl))
+            itemurlraw = urllib.request.urlopen(req).read().strip().decode('utf-8')
+        except:
+            pass
+        if not 'Item cannot be found' in itemurlraw:
+            print("Error, item exist", itemurl, "Skiping...")
+            sys.exit()
+        
+        #create download directory
+        if not os.path.exists(userid):
+            os.mkdir(userid)
+        os.chdir(userid)
+        print('Changed directory to', os.getcwd())
         
         #download all the sets for this user
         print("Loading sets for user", userid)
         photosets = getUserPhotosets(flickr=flickr, user_id=userid)
         print(len(photosets)-1, "sets found for", userid)
         rows = []
-        tags = []
+        tags = ['user', 'account', userid, userid_]
         photosinset = []
         photoswithoutaset = []
         for photoset, photosetprops in photosets:
