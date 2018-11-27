@@ -34,8 +34,6 @@ import flickrapi
 from internetarchive import upload
 from internetarchive import get_item
 
-from archiveteamfun import *
-
 """
 Installation:
 * virtualenv -p python3 flickr2ia
