@@ -217,7 +217,7 @@ def download(url='', filename=''):
     print("Downloading", url)
     urllib.request.urlretrieve(url, filename)
 
-def generateTags(tags=[]):
+def generateTags(tags=[], default=[]):
     tagsdict = {}
     for tag in tags:
         if tag in tagsdict:
@@ -226,7 +226,7 @@ def generateTags(tags=[]):
             tagsdict[tag] = 1
     tagslist = [[freq, tag] for tag, freq in tagsdict.items()]
     tagslist.sort(reverse=True)
-    itemtags = ['Flickr', 'images', ]
+    itemtags = ['Flickr', 'images', ] + default
     itemtags2 = []
     for freq, tag in tagslist[:tagslimit-len(itemtags)]:
         itemtags2.append(tag)
@@ -318,7 +318,7 @@ def main():
         photosets = getUserPhotosets(flickr=flickr, user_id=userid)
         print(len(photosets)-1, "sets found for", userid)
         rows = []
-        tags = ['user', 'account', userid, userid_]
+        tags = []
         photosinset = []
         photoswithoutaset = []
         for photoset, photosetprops in photosets:
@@ -394,7 +394,7 @@ def main():
         itemtitle = "" # use itemid by default
         itemdate = datetime.datetime.now().strftime("%Y-%m-%d")
         itemoriginalurl = 'https://www.flickr.com/photos/%s/' % (userid)
-        itemtags = generateTags(tags=tags)
+        itemtags = generateTags(tags=tags, default=['user', 'account', userid, userid_])
         itemdesc = 'Images by Flickr user <a href="%s">%s</a>' % (itemoriginalurl, userid)
         userpathalias = getUserPathalias(flickr=flickr, user_id=userid)
         if userpathalias:
