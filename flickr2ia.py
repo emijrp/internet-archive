@@ -369,7 +369,10 @@ def main():
                         #thumb in zip
                         if photo == photosetprops['primary']:
                             download(url=photoprops['url_sq'], filename='thumb.jpg')
-                            download(url=photoprops['url_m'], filename='../%s' % (photofilename))
+                            if photoprops['url_m']:
+                                download(url=photoprops['url_m'], filename='../%s' % (photofilename))
+                            else: #probably is a small file, download original
+                                download(url=photoprops['url_o'], filename='../%s' % (photofilename))
                         tags += getPhotoTags(xml=xml)
                         photosinset.append(photo)
                 else:
@@ -389,7 +392,10 @@ def main():
                                 print("Warning, original size not available. Downloading other resolution")
                                 if photofilename.endswith('.None'):
                                     photofilename = photofilename[:-5] + '.jpg'
-                                download(url=photoprops['url_m'], filename=photofilename)
+                                if photoprops['url_m']:
+                                    download(url=photoprops['url_m'], filename=photofilename)
+                                else: #probably is a small file, download original
+                                    download(url=photoprops['url_o'], filename=photofilename)
                             saveXML(xml=xml, filename=photoxmlfilename)
                             tags += getPhotoTags(xml=xml)
                 
