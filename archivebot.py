@@ -27,17 +27,30 @@ import pywikibot.pagegenerators as pagegenerators
 
 from archiveteamfun import *
 
-def curateurls(urls=[]):
-    urls2 = []
-    for url in urls:
-        url2 = url.strip()
-        if url2.startswith('http'):
-            if '://' in url2 and not '/' in url2.split('://')[1]:
-                url2 = url2 + "/"
-        urls2.append(url2)
-    urls2 = list(set(urls2)) #remove dupes
-    urls2.sort()
-    return urls2
+def curateurlscore(url=''):
+    url2 = url.strip()
+    if url2.startswith('http'):
+        if '://' in url2 and not '/' in url2.split('://')[1]:
+            url2 = url2 + "/"
+    return url2
+
+def curateurls(wlist=''):
+    lines = []
+    for line in wlist.text.strip().splitlines():
+        label = ''
+        if '|' in line:
+            url, label = line.split('|')[0:2]
+        url = curateurlscore(url=url)
+        if label:
+            line = url.strip() + ' | ' + label.strip()
+        else:
+            line = url
+        lines.append(line)
+    lines.sort()
+    lines = '\n'.join(lines)
+    if wlist.text != lines:
+        wlist.text = lines
+        wlist.save("BOT - Sorting list")
 
 def main():
     atsite = pywikibot.Site('archiveteam', 'archiveteam')
@@ -58,19 +71,19 @@ def main():
         if not wlist.exists():
             print("Page %s/list doesnt exist" % (wtitle))
             continue
-        urls = curateurls(urls=wlist.text.strip().splitlines())
-        urls = '\n'.join(urls)
-        if wlist.text != urls:
-            wlist.text = urls
-            wlist.save("BOT - Sorting list")
+        curateurls(wlist=wlist)
         
         print('\n===', wtitle, '===')
         websites = []
+        websiteslabels = {}
         for line in wlist.text.strip().splitlines():
             line = line.strip().lstrip('*').strip()
             if line.startswith('#'):
                 continue
-            websites.append(line)
+            website = line.split('|')[0].strip()
+            websites.append(website)
+            if '|' in line:
+                websiteslabels[website] = line.split('|')[1].strip()
             
         c = 1
         rowsplain = ""
@@ -88,7 +101,10 @@ def main():
             totaljobsize += viewer[0][3]
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
-            rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
+            if website in websiteslabels.keys() and websiteslabels[website]:
+                rowsplain += "\n|-\n| %s[%s %s] || %s%s\n%s " % (rowspanplain, website, websiteslabels[website], rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
+            else:
+                rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
             c += 1
         
         output = """

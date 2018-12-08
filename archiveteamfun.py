@@ -115,6 +115,9 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
                         continue
             
             warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?-\d+\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
+            jobaborted = False
+            if '-aborted-' in rawjob or '-aborted.json' in rawjob:
+                jobaborted = True
             jobdate = ''
             jobsize = 0
             for warc in warcs:
@@ -130,7 +133,10 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
             if jobsize < 1024:
                 jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
             else:
-                jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | %s" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                if jobaborted:
+                    jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{orange|%s}}" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                else:
+                    jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
             totaljobsize += jobsize
             details.append(jobdetails)
     detailsplain = '\n|-\n'.join(details)
