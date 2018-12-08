@@ -114,7 +114,7 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
                     if not url in jsonraw:
                         continue
             
-            warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?-\d+\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
+            warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
             jobaborted = False
             if '-aborted-' in rawjob or '-aborted.json' in rawjob:
                 jobaborted = True
