@@ -40,6 +40,8 @@ def curateurls(wlist=''):
         label = ''
         if '|' in line:
             url, label = line.split('|')[0:2]
+        else:
+            url = line.strip()
         url = curateurlscore(url=url)
         if label:
             line = url.strip() + ' | ' + label.strip()
@@ -65,6 +67,7 @@ def main():
         if len(sys.argv)>1 and not sys.argv[1] in wtitle:
             continue
         
+        #if not wtitle.startswith('ArchiveBot/Trave'):
         if not wtitle.startswith('ArchiveBot/'):
             continue
         wlist = pywikibot.Page(atsite, '%s/list' % (wtitle))
