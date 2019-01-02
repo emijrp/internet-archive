@@ -42,7 +42,7 @@ def convertsize(b=0): #bytes
     elif b < 1024*1024*1024*1024*1024*1024: #<1EB
         return '%.1f&nbsp;PB' % (b/(1024.0*1024*1024*1024*1024))
 
-def getURL(url='', cache=False):
+def getURL(url='', cache=False, retry=True):
     global cached
     
     if cache: #do not download if it is cached
@@ -60,7 +60,7 @@ def getURL(url='', cache=False):
     except:
         sleep = 10 # seconds
         maxsleep = 30
-        while sleep <= maxsleep:
+        while retry and sleep <= maxsleep:
             print('Error while retrieving: %s' % (url))
             print('Retry in %s seconds...' % (sleep))
             time.sleep(sleep)
@@ -113,6 +113,8 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
                     jsonraw = getURL(url=jsonurl, cache=True)
                     if not url in jsonraw:
                         continue
+                else:
+                    continue
             
             warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
             jobaborted = False

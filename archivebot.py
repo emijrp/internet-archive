@@ -67,7 +67,7 @@ def main():
         if len(sys.argv)>1 and not sys.argv[1] in wtitle:
             continue
         
-        #if not wtitle.startswith('ArchiveBot/Trave'):
+        #if not wtitle.startswith('ArchiveBot/National Film'):
         if not wtitle.startswith('ArchiveBot/'):
             continue
         wlist = pywikibot.Page(atsite, '%s/list' % (wtitle))
