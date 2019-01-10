@@ -17,6 +17,8 @@
 
 import json
 import os
+import pickle
+import random
 import re
 import sys
 import _thread
@@ -42,10 +44,30 @@ def convertsize(b=0): #bytes
     elif b < 1024*1024*1024*1024*1024*1024: #<1EB
         return '%.1f&nbsp;PB' % (b/(1024.0*1024*1024*1024*1024))
 
+def saveCache(c={}):
+    with open('archivebot.cache', 'wb') as f:
+        pickle.dump(c, f)
+
+def loadCache():
+    c = {}
+    if os.path.exists('archivebot.cache'):
+        with open('archivebot.cache', 'rb') as f:
+            c = pickle.load(f)
+    return c.copy()
+
+def removeFromCache(url=''):
+    global cached
+    
+    if url and url in cached:
+        del cached[url]
+        saveCache(c=cached)
+
 def getURL(url='', cache=False, retry=True):
     global cached
     
     if cache: #do not download if it is cached
+        if not cached: #empty dict
+            cached = loadCache()
         if url in cached:
             print("Using cached page for %s" % (url))
             return cached[url]
@@ -57,6 +79,8 @@ def getURL(url='', cache=False, retry=True):
         raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
         if cache: #refresh cache
             cached[url] = raw
+            if not random.randint(0, 5):
+                saveCache(c=cached)
     except:
         sleep = 10 # seconds
         maxsleep = 30
@@ -95,7 +119,7 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
     domains = re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)
     details = []
     totaljobsize = 0
-    jobslimit = 250 #limit, to avoid twitter, facebook and other with many jobs
+    jobslimit = 500 #limit, to avoid twitter, facebook and other with many jobs
     for domain in domains:
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
@@ -114,6 +138,7 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
                     if not url in jsonraw:
                         continue
                 else:
+                    removeFromCache(url=jsonurl) #job in progress, web content will change soon
                     continue
             
             warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
