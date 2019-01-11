@@ -129,19 +129,25 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
         for job in jobs[:jobslimit]: 
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
             rawjob = getURL(url=urljob, cache=True)
+            jsonfile = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
+            
+            if not jsonfile: #job in progress, remove cache
+                removeFromCache(url=urljob)
+                continue
             
             if singleurl:
-                jsonfile = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
                 if jsonfile:
                     jsonurl = jsonfile[0]
                     jsonraw = getURL(url=jsonurl, cache=True)
                     if not url in jsonraw:
                         continue
                 else:
-                    removeFromCache(url=jsonurl) #job in progress, web content will change soon
                     continue
             
             warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
+            if not warcs: #job in progress, remove cache
+                removeFromCache(url=urljob)
+                continue
             jobaborted = False
             if '-aborted-' in rawjob or '-aborted.json' in rawjob:
                 jobaborted = True
