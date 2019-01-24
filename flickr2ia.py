@@ -215,7 +215,15 @@ def saveXML(xml='', filename=''):
 
 def download(url='', filename=''):
     print("Downloading", url)
-    urllib.request.urlretrieve(url, filename)
+    error = True
+    while error:
+        try:
+            urllib.request.urlretrieve(url, filename)
+            error = False
+        except:
+            print("Download error. Retrying")
+            error = True
+            time.sleep(10)
 
 def generateTags(tags=[], default=[]):
     tagsdict = {}
