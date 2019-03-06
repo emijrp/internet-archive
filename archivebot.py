@@ -77,6 +77,10 @@ def main():
         curateurls(wlist=wlist)
         
         print('\n===', wtitle, '===')
+        if not '<!-- bot -->' in wtext or not '<!-- /bot -->' in wtext:
+            print("No <!-- bot --> tag. Skiping...")
+            continue
+        
         websites = []
         websiteslabels = {}
         for line in wlist.text.strip().splitlines():
