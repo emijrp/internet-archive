@@ -35,24 +35,51 @@ def curateurlscore(url=''):
     return url2
 
 def curateurls(wlist=''):
+    # Returns a dict of sectionname => list of URLs entries
+    # sectionname is None for URLs outside of a section (i.e. on a page without section or before the first section).
+    # A "URL entry" in the list is a tuple (URL, label); the label is None if it isn't present.
+
     lines = []
+    currentsectionname = None
+    currentsectionentries = []
+    sectionentries = {}
+
+    def endsection():
+        nonlocal currentsectionentries, lines, sectionentries, currentsectionname
+        currentsectionentries.sort()
+        lines.extend(url + ' | ' + label if label else url for url, label in currentsectionentries)
+        sectionentries[currentsectionname] = currentsectionentries
+        currentsectionentries = []
+
     for line in wlist.text.strip().splitlines():
-        label = ''
-        if '|' in line:
-            url, label = line.split('|')[0:2]
-        else:
-            url = line.strip()
-        url = curateurlscore(url=url)
-        if label:
-            line = url.strip() + ' | ' + label.strip()
-        else:
-            line = url
-        lines.append(line)
-    lines.sort()
+        if line.strip().startswith('='):
+            # New section, sort and append previous section
+            endsection()
+            currentsectionname = line.strip().strip('=').strip()
+            if currentsectionname in sectionentries:
+                print('Warning: duplicate section name {!r} on page {}'.format(currentsectionname, wlist.title()))
+            lines.append(line.strip())
+        elif line.strip():
+            label = ''
+            if '|' in line:
+                url, label = line.split('|')[0:2]
+            else:
+                url = line.strip()
+            url = curateurlscore(url=url)
+            if label:
+                line = url.strip() + ' | ' + label.strip()
+            else:
+                line = url
+            currentsectionentries.append((url.strip(), label.strip() if label else None))
+    endsection()
+
     lines = '\n'.join(lines)
     if wlist.text != lines:
         wlist.text = lines
         wlist.save("BOT - Sorting list")
+
+    return sectionentries
+
 
 def main():
     atsite = pywikibot.Site('archiveteam', 'archiveteam')
@@ -74,47 +101,80 @@ def main():
         if not wlist.exists():
             print("Page %s/list doesnt exist" % (wtitle))
             continue
-        curateurls(wlist=wlist)
+        sectionentries = curateurls(wlist=wlist)
         
         print('\n===', wtitle, '===')
-        if not '<!-- bot -->' in wtext or not '<!-- /bot -->' in wtext:
+        if (not '<!-- bot -->' in wtext and not '<!-- bot:' in wtext) or not '<!-- /bot -->' in wtext:
             print("No <!-- bot --> tag. Skiping...")
             continue
-        
-        websites = []
-        websiteslabels = {}
-        for line in wlist.text.strip().splitlines():
-            line = line.strip().lstrip('*').strip()
-            if line.startswith('#'):
+
+        newtext = []
+
+        # Find blocks of page text that end with a bot tag
+        blocks = wtext.split('<!-- /bot -->')
+
+        # The last block must be tag-free, so only iterate over the previous ones
+        for block in blocks[:-1]:
+            # Find beginning of bot tag
+            pos = block.find('<!-- bot')
+            if pos == -1:
+                # Broken block (no opening tag), skip
+                newtext.append(block)
                 continue
-            website = line.split('|')[0].strip()
-            websites.append(website)
-            if '|' in line:
-                websiteslabels[website] = line.split('|')[1].strip()
-            
-        c = 1
-        rowsplain = ""
-        totaljobsize = 0
-        for website in websites:
-            viewerplain = ''
-            viewerdetailsplain = ''
-            viewer = [getArchiveBotViewer(url=website)]
-            if viewer[0][0]:
-                viewerplain = "[%s {{saved}}]" % (viewer[0][1])
-                viewerdetailsplain = viewer[0][2]
+
+            if block[pos:].startswith('<!-- bot -->'):
+                # Sectionless tag, use section None
+                section = None
+                openingtag = '<!-- bot -->'
+            elif block[pos:].startswith('<!-- bot:'):
+                # Extract section name
+                openend = block.find('-->', pos)
+                if openend == -1:
+                    # Broken block (no end of opening tag), skip
+                    newtext.append(block)
+                    continue
+                section = block[pos + 9:openend].strip() # 9 = len('<!-- bot:')
+                openingtag = block[pos:openend + 3]
             else:
-                viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
+                # Invalid bot tag, skip
+                newtext.append(block)
+                continue
+
+            if section not in sectionentries:
+                # Broken block (section doesn't exist), skip
+                newtext.append(block)
+                continue
+
+            # Add prefixed text (if any)
+            newtext.append(block[:pos])
+
+            # Add opening tag (as it was before)
+            newtext.append(openingtag)
+
+            # Generate table
+            c = 1
+            rowsplain = ""
+            totaljobsize = 0
+            for url, label in sectionentries[section]:
+                viewerplain = ''
                 viewerdetailsplain = ''
-            totaljobsize += viewer[0][3]
-            rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
-            rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
-            if website in websiteslabels.keys() and websiteslabels[website]:
-                rowsplain += "\n|-\n| %s[%s %s] || %s%s\n%s " % (rowspanplain, website, websiteslabels[website], rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
-            else:
-                rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
-            c += 1
+                viewer = [getArchiveBotViewer(url=url)]
+                if viewer[0][0]:
+                    viewerplain = "[%s {{saved}}]" % (viewer[0][1])
+                    viewerdetailsplain = viewer[0][2]
+                else:
+                    viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
+                    viewerdetailsplain = ''
+                totaljobsize += viewer[0][3]
+                rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
+                rowspanplain = 'rowspan=%d | ' % (rowspan) if rowspan>1 else ''
+                if label:
+                    rowsplain += "\n|-\n| %s[%s %s] || %s%s\n%s " % (rowspanplain, url, label, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
+                else:
+                    rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, url, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
+                c += 1
         
-        output = """
+            output = """
 * '''Statistics''': {{saved}} (%s){{·}} {{notsaved}} (%s){{·}} Total size (%s)
 
 Do not edit this table, it is automatically updated by bot. There is a [[{{FULLPAGENAME}}/list|raw list]] of URLs that you can edit.
@@ -125,9 +185,15 @@ Do not edit this table, it is automatically updated by bot. There is a [[{{FULLP
 ! Domain !! Job !! Date !! Size %s
 |}
 """ % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize), rowsplain)
-        before = wtext.split('<!-- bot -->')[0]
-        after = wtext.split('<!-- /bot -->')[1]
-        newtext = '%s<!-- bot -->%s<!-- /bot -->%s' % (before, output, after)
+            newtext.append(output)
+
+            newtext.append('<!-- /bot -->')
+
+        # Add the last, tag-free block
+        newtext.append(blocks[-1])
+
+        newtext = ''.join(newtext)
+
         if wtext != newtext:
             pywikibot.showDiff(wtext, newtext)
             page.text = newtext
