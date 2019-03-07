@@ -58,6 +58,8 @@ def curateurls(wlist=''):
             currentsectionname = line.strip().strip('=').strip()
             if currentsectionname in sectionentries:
                 print('Warning: duplicate section name {!r} on page {}'.format(currentsectionname, wlist.title()))
+            if lines:
+                lines.append('')
             lines.append(line.strip())
         elif line.strip():
             label = ''
