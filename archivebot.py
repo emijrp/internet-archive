@@ -46,7 +46,8 @@ def curateurls(wlist=''):
 
     def endsection():
         nonlocal currentsectionentries, lines, sectionentries, currentsectionname
-        currentsectionentries.sort()
+        currentsectionentries = list(set(currentsectionentries)) # Deduplicate
+        currentsectionentries.sort(key = lambda x: (x[0], x[1] if x[1] is not None else '')) # Sorting a mixture of None and strings is not possible directly
         lines.extend(url + ' | ' + label if label else url for url, label in currentsectionentries)
         sectionentries[currentsectionname] = currentsectionentries
         currentsectionentries = []
