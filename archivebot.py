@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import collections
 import datetime
 import json
 import re
@@ -27,17 +28,29 @@ import pywikibot.pagegenerators as pagegenerators
 
 from archiveteamfun import *
 
-def curateurlscore(url=''):
-    url2 = url.strip()
-    if url2.startswith('http'):
-        if '://' in url2 and not '/' in url2.split('://')[1]:
-            url2 = url2 + "/"
-    return url2
+
+Entry = collections.namedtuple('Entry', ('truncatedurl', 'url', 'label', 'line'))
+
+truncationpattern = re.compile(r'^[^:/]+://(www\.)?')
+
+def parselistline(line):
+    label = None
+    if '|' in line:
+        url, label = line.split('|')[0:2]
+        label = label.strip()
+    else:
+        url = line
+    url = url.strip()
+    if '://' in url and not '/' in url.split('://')[1]:
+        url = url + '/'
+    line = url + (' | ' + label if label else '')
+    truncatedurl = truncationpattern.sub('', url)
+    return Entry(truncatedurl = truncatedurl, url = url, label = label, line = line)
 
 def curateurls(wlist=''):
     # Returns a dict of sectionname => list of URLs entries
     # sectionname is None for URLs outside of a section (i.e. on a page without section or before the first section).
-    # A "URL entry" in the list is a tuple (URL, label); the label is None if it isn't present.
+    # A "URL entry" in the list is an Entry object (namedtuple); the label is None if it isn't present.
 
     lines = []
     currentsectionname = None
@@ -47,8 +60,8 @@ def curateurls(wlist=''):
     def endsection():
         nonlocal currentsectionentries, lines, sectionentries, currentsectionname
         currentsectionentries = list(set(currentsectionentries)) # Deduplicate
-        currentsectionentries.sort(key = lambda x: (x[0], x[1] if x[1] is not None else '')) # Sorting a mixture of None and strings is not possible directly
-        lines.extend(url + ' | ' + label if label else url for url, label in currentsectionentries)
+        currentsectionentries.sort(key = lambda x: (x.truncatedurl, x.label if x.label is not None else ''))
+        lines.extend(x.line for x in currentsectionentries)
         sectionentries[currentsectionname] = currentsectionentries
         currentsectionentries = []
 
@@ -63,17 +76,7 @@ def curateurls(wlist=''):
                 lines.append('')
             lines.append(line.strip())
         elif line.strip():
-            label = ''
-            if '|' in line:
-                url, label = line.split('|')[0:2]
-            else:
-                url = line.strip()
-            url = curateurlscore(url=url)
-            if label:
-                line = url.strip() + ' | ' + label.strip()
-            else:
-                line = url
-            currentsectionentries.append((url.strip(), label.strip() if label else None))
+            currentsectionentries.append(parselistline(line))
     endsection()
 
     lines = '\n'.join(lines)
@@ -158,10 +161,10 @@ def main():
             c = 1
             rowsplain = ""
             totaljobsize = 0
-            for url, label in sectionentries[section]:
+            for entry in sectionentries[section]:
                 viewerplain = ''
                 viewerdetailsplain = ''
-                viewer = [getArchiveBotViewer(url=url)]
+                viewer = [getArchiveBotViewer(url=entry.url)]
                 if viewer[0][0]:
                     viewerplain = "[%s {{saved}}]" % (viewer[0][1])
                     viewerdetailsplain = viewer[0][2]
@@ -171,10 +174,10 @@ def main():
                 totaljobsize += viewer[0][3]
                 rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
                 rowspanplain = 'rowspan=%d | ' % (rowspan) if rowspan>1 else ''
-                if label:
-                    rowsplain += "\n|-\n| %s[%s %s] || %s%s\n%s " % (rowspanplain, url, label, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
+                if entry.label:
+                    rowsplain += "\n|-\n| %s[%s %s] || %s%s\n%s " % (rowspanplain, entry.url, entry.label, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
                 else:
-                    rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, url, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
+                    rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, entry.url, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
                 c += 1
         
             output = """
