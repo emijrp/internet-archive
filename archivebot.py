@@ -29,7 +29,7 @@ import pywikibot.pagegenerators as pagegenerators
 from archiveteamfun import *
 
 
-Entry = collections.namedtuple('Entry', ('truncatedurl', 'url', 'label', 'line'))
+Entry = collections.namedtuple('Entry', ('sorturl', 'url', 'label', 'line'))
 
 truncationpattern = re.compile(r'^[^:/]+://(www\.)?')
 
@@ -44,8 +44,8 @@ def parselistline(line):
     if '://' in url and not '/' in url.split('://')[1]:
         url = url + '/'
     line = url + (' | ' + label if label else '')
-    truncatedurl = truncationpattern.sub('', url)
-    return Entry(truncatedurl = truncatedurl, url = url, label = label, line = line)
+    sorturl = truncationpattern.sub('', url).lower()
+    return Entry(sorturl = sorturl, url = url, label = label, line = line)
 
 def curateurls(wlist=''):
     # Returns a dict of sectionname => list of URLs entries
@@ -60,7 +60,7 @@ def curateurls(wlist=''):
     def endsection():
         nonlocal currentsectionentries, lines, sectionentries, currentsectionname
         currentsectionentries = list(set(currentsectionentries)) # Deduplicate
-        currentsectionentries.sort(key = lambda x: (x.truncatedurl, x.label if x.label is not None else ''))
+        currentsectionentries.sort(key = lambda x: (x.sorturl, x.label if x.label is not None else ''))
         lines.extend(x.line for x in currentsectionentries)
         sectionentries[currentsectionname] = currentsectionentries
         currentsectionentries = []
