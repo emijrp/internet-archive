@@ -124,8 +124,9 @@ def main():
             # Find beginning of bot tag
             pos = block.find('<!-- bot')
             if pos == -1:
-                # Broken block (no opening tag), skip
+                print('Block is missing opening tag, skipping...')
                 newtext.append(block)
+                newtext.append('<!-- /bot -->')
                 continue
 
             if block[pos:].startswith('<!-- bot -->'):
@@ -136,19 +137,22 @@ def main():
                 # Extract section name
                 openend = block.find('-->', pos)
                 if openend == -1:
-                    # Broken block (no end of opening tag), skip
+                    print("Block's opening tag does not have an end, skipping...")
                     newtext.append(block)
+                    newtext.append('<!-- /bot -->')
                     continue
                 section = block[pos + 9:openend].strip() # 9 = len('<!-- bot:')
                 openingtag = block[pos:openend + 3]
             else:
-                # Invalid bot tag, skip
+                print('Block has an invalid bot tag, skipping...')
                 newtext.append(block)
+                newtext.append('<!-- /bot -->')
                 continue
 
             if section not in sectionentries:
-                # Broken block (section doesn't exist), skip
+                print('Block references section {!r} which does not exist, skipping...'.format(section))
                 newtext.append(block)
+                newtext.append('<!-- /bot -->')
                 continue
 
             # Add prefixed text (if any)
