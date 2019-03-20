@@ -131,7 +131,10 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
             len(re.findall(r'{{notsaved}}', page.text)) != len(re.findall(r'{{notsaved}}', output)):
             pywikibot.showDiff(page.text, output)
             page.text = output
-            page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
+            try:
+                page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
+            except:
+                print("Error while saving...")
         else:
             print("No changes needed in", page.title())
         
@@ -141,7 +144,10 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
         if pagelist.text != outputlist:
             pywikibot.showDiff(pagelist.text, outputlist)
             pagelist.text = outputlist
-            pagelist.save("BOT - Updating list")
+            try:
+                pagelist.save("BOT - Updating list")
+            except:
+                print("Error while saving...")
         else:
             print("No changes needed in", pagelist.title())
 

@@ -16,26 +16,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
-from archive import *
+from archiveteamfun import *
 
 def main():
     wikisites = [
-        'gutenberg', 
-        'other', 
-        'psiram', 
-        'stack_exchange', 
-        'ted', 
-        'vikidia', 
+        #'gutenberg', 
+        #'other', 
+        #'psiram', 
+        #'stack_exchange', 
+        #'ted', 
+        #'vikidia', 
         
-        #'wikibooks', 
-        #'wikinews', 
-        #'wikipedia', 
-        #'wikiquote', 
-        #'wikisource', 
-        #'wikispecies', 
-        #'wikiversity', 
-        #'wikivoyage', 
-        #'wiktionary', 
+        'wikibooks', 
+        'wikinews', 
+        'wikipedia', 
+        'wikiquote', 
+        'wikisource', 
+        'wikispecies', 
+        'wikiversity', 
+        'wikivoyage', 
+        'wiktionary', 
     ]
     c = 0
     for wikisite in wikisites:
@@ -46,6 +46,11 @@ def main():
         if 'wiki' in wikisite.lower():
             tags.append('mediawiki')
         for zim in zims:
+            url2 = 'https://archive.org/details/' + zim
+            html2 = getURL(url=url2, retry=False)
+            if html2 and not 'Item cannot be found' in html2:
+                print('Skiping. Item exists', url2)
+                continue
             print('"Downloading %s' % (zim))
             zimurl = url + zim
             os.system('wget "%s" -O zim/%s' % (zimurl, zim))

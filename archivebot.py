@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2018 emijrp <emijrp@gmail.com>
+# Copyright (C) 2018-2019 emijrp <emijrp@gmail.com>
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -207,7 +207,10 @@ Do not edit this table, it is automatically updated by bot. There is a [[{{FULLP
         if wtext != newtext:
             pywikibot.showDiff(wtext, newtext)
             page.text = newtext
-            page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
+            try:
+                page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
+            except:
+                print("Error while saving...")
         else:
             print("No changes needed in", page.title())
 

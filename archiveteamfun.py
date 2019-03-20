@@ -119,7 +119,7 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
     domains = re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)
     details = []
     totaljobsize = 0
-    jobslimit = 500 #limit, to avoid twitter, facebook and other with many jobs
+    jobslimit = 1000 #limit, to avoid twitter, facebook and other with many jobs
     for domain in domains:
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
