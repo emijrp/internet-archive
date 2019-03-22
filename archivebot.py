@@ -45,6 +45,9 @@ def parselistline(line):
         url = url + '/'
     line = url + (' | ' + label if label else '')
     sorturl = truncationpattern.sub('', url).lower()
+    if sorturl.startswith('transfer.sh/') and sum(x == '/' for x in sorturl):
+        # For transfer.sh URLs that contain exactly two slashes, strip the first path component = the random file ID to sort by the filename instead.
+        sorturl = 'transfer.sh' + sorturl[sorturl.index('/', 12):]  # 12 = len('transfer.sh/')
     return Entry(sorturl = sorturl, url = url, label = label, line = line)
 
 def curateurls(wlist=''):
