@@ -31,18 +31,18 @@ import urllib.parse
 cached = {}
 
 def convertsize(b=0): #bytes
-    if b < 1024: #<1KB
-        return '0&nbsp;KB'
-    elif b < 1024*1024: #<1MB
-        return '%d&nbsp;KB' % (b/(1024))
-    elif b < 1024*1024*1024: #<1GB
-        return '%d&nbsp;MB' % (b/(1024*1024))
-    elif b < 1024*1024*1024*1024: #<1TB
-        return '%.1f&nbsp;GB' % (b/(1024.0*1024*1024))
-    elif b < 1024*1024*1024*1024*1024: #<1PB
-        return '%.1f&nbsp;TB' % (b/(1024.0*1024*1024*1024))
-    elif b < 1024*1024*1024*1024*1024*1024: #<1EB
-        return '%.1f&nbsp;PB' % (b/(1024.0*1024*1024*1024*1024))
+    if b < 1024: #<1KiB
+        return '0&nbsp;KiB'
+    elif b < 1024*1024: #<1MiB
+        return '%d&nbsp;KiB' % (b/(1024))
+    elif b < 1024*1024*1024: #<1GiB
+        return '%d&nbsp;MiB' % (b/(1024*1024))
+    elif b < 1024*1024*1024*1024: #<1TiB
+        return '%.1f&nbsp;GiB' % (b/(1024.0*1024*1024))
+    elif b < 1024*1024*1024*1024*1024: #<1PiB
+        return '%.1f&nbsp;TiB' % (b/(1024.0*1024*1024*1024))
+    elif b < 1024*1024*1024*1024*1024*1024: #<1EiB
+        return '%.1f&nbsp;PiB' % (b/(1024.0*1024*1024*1024*1024))
 
 def saveCache(c={}):
     with open('archivebot.cache', 'wb') as f:
