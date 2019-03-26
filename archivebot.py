@@ -49,7 +49,7 @@ def parselistline(line):
         if domain == 'ix.io' and '+' not in sorturl:
             # Only apply this stripping to the undocumented trick URLs of format ix.io/code+/filename
             continue
-        if sorturl.startswith(domain) and sum(x == '/' for x in sorturl):
+        if sorturl.startswith(domain) and sum(x == '/' for x in sorturl) == 2:
             # For file hosting URLs that contain exactly two slashes, strip the first path component = the random file ID to sort by the filename instead.
             sorturl = domain + sorturl[sorturl.index('/', len(domain) + 1):]
     return Entry(sorturl = sorturl, url = url, label = label, line = line)
