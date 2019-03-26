@@ -171,7 +171,10 @@ def test_main():
 		 ),
 
 		TestPage(title = 'ArchiveBot/Transfersh/list', textbefore = '\n'.join(['https://transfer.sh/23456/bar', 'https://transfer.sh/12345/foo']), textafter = None, textafterpatterns = None),
-		TestPage(title = 'ArchiveBot/Transfersh', textbefore = '<!-- bot --><!-- /bot -->', textafter = None, textafterpatterns = ['^']) # Don't care about this, just needed to trigger the /list processing
+		TestPage(title = 'ArchiveBot/Transfersh', textbefore = '<!-- bot --><!-- /bot -->', textafter = None, textafterpatterns = ['^']), # Don't care about this, just needed to trigger the /list processing
+
+		TestPage(title = 'ArchiveBot/Ixio/list', textbefore = '\n'.join(['http://ix.io/23456+/bar', 'http://ix.io/12345+/foo']), textafter = None, textafterpatterns = None),
+		TestPage(title = 'ArchiveBot/Ixio', textbefore = '<!-- bot --><!-- /bot -->', textafter = None, textafterpatterns = ['^']),
 	]
 
 	viewerData = {
