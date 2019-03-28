@@ -53,6 +53,7 @@ def make_mock_page(catalogue):
 			obj._title = title
 			obj.text = text
 			obj._exists = exists
+			obj.savecomment = None
 			return obj
 
 		def title(self):
@@ -62,7 +63,7 @@ def make_mock_page(catalogue):
 			return self._exists
 
 		def save(self, comment):
-			pass
+			self.savecomment = comment
 	return MockPage
 
 
@@ -114,17 +115,19 @@ def mock(titles, viewerData):
 # Container for the test page information
 # textafter can be None, which means that the text should remain unchanged
 # textafterpatterns, if not None, contains regex patterns which must match lines in the text in the order specified
-TestPage = collections.namedtuple('TestPage', ('title', 'textbefore', 'textafter', 'textafterpatterns'))
+# savecomment being None means that the page wasn't saved (e.g. no changes needed)
+TestPage = collections.namedtuple('TestPage', ('title', 'textbefore', 'textafter', 'textafterpatterns', 'savecomment'))
 
 
 def test_main():
 	pagesData = [
-		TestPage(title = 'ArchiveBot/Simple/list', textbefore = '\n'.join(['https://example.org/']), textafter = None, textafterpatterns = None),
+		TestPage(title = 'ArchiveBot/Simple/list', textbefore = '\n'.join(['https://example.org/']), textafter = None, textafterpatterns = None, savecomment = None),
 		TestPage(
 		  title = 'ArchiveBot/Simple',
 		  textbefore = '<!-- bot --><!-- /bot -->',
 		  textafter = None,
 		  textafterpatterns = ['^<!-- bot -->$', 'Statistics', 'Do not edit', r'example\.org.*\{\{notsaved\}\}', '^<!-- /bot -->$'],
+		  savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (1), Total size (0&nbsp;KiB)',
 		 ),
 
 		TestPage(
@@ -132,15 +135,17 @@ def test_main():
 		  textbefore = '\n'.join(['https://example.org/', 'http://www.example.net/']),
 		  textafter = '\n'.join(['http://www.example.net/', 'https://example.org/']),
 		  textafterpatterns = None,
+		  savecomment = 'BOT - Sorting list',
 		 ),
 		TestPage(
 		  title = 'ArchiveBot/Sorting',
 		  textbefore = '<!-- bot --><!-- /bot -->',
 		  textafter = None,
 		  textafterpatterns = ['^<!-- bot -->$', r'example\.net.*\{\{notsaved\}\}', r'example\.org.*\{\{notsaved\}\}', '^<!-- /bot -->$'],
+		  savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (2), Total size (0&nbsp;KiB)',
 		 ),
 
-		TestPage(title = 'ArchiveBot/Sections/list', textbefore = '\n'.join(['https://example.net/', 'https://example.org/', '', '== Foo ==', 'https://archive.org/', 'https://archiveteam.org/']), textafter = None, textafterpatterns = None),
+		TestPage(title = 'ArchiveBot/Sections/list', textbefore = '\n'.join(['https://example.net/', 'https://example.org/', '', '== Foo ==', 'https://archive.org/', 'https://archiveteam.org/']), textafter = None, textafterpatterns = None, savecomment = None),
 		TestPage(
 		  title = 'ArchiveBot/Sections',
 		  textbefore = 'Look at these sections:\n\n== Start ==\n<!-- bot --><!-- /bot -->\n\n== Just foo ==\n<!-- bot:Foo --><!-- /bot -->',
@@ -150,12 +155,13 @@ def test_main():
 		    '^== Start ==$', '^<!-- bot -->$', r'example\.net.*\{\{notsaved\}\}', r'example\.org.*\{\{notsaved\}\}', '<!-- /bot -->$',
 		    '^== Just foo ==$', '^<!-- bot:Foo -->$', r'archive\.org.*\{\{notsaved\}\}', r'archiveteam\.org.*\{\{notsaved\}\}', '<!-- /bot -->$',
 		   ],
+		  savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (4), Total size (0&nbsp;KiB)',
 		 ),
 
-		TestPage(title = 'ArchiveBot/Broken Sections/list', textbefore = '== Title ==\nhttps://example.org/', textafter = None, textafterpatterns = None),
-		TestPage(title = 'ArchiveBot/Broken Sections', textbefore = 'Introduction\n<!-- bot:title --><!-- /bot -->\nEpilogue', textafter = None, textafterpatterns = None),
+		TestPage(title = 'ArchiveBot/Broken Sections/list', textbefore = '== Title ==\nhttps://example.org/', textafter = None, textafterpatterns = None, savecomment = None),
+		TestPage(title = 'ArchiveBot/Broken Sections', textbefore = 'Introduction\n<!-- bot:title --><!-- /bot -->\nEpilogue', textafter = None, textafterpatterns = None, savecomment = None),
 
-		TestPage(title = 'ArchiveBot/Saved sites/list', textbefore = '\n'.join(['http://alsosaved.example.net/', 'https://savedsite.example.com/']), textafter = None, textafterpatterns = None),
+		TestPage(title = 'ArchiveBot/Saved sites/list', textbefore = '\n'.join(['http://alsosaved.example.net/', 'https://savedsite.example.com/']), textafter = None, textafterpatterns = None, savecomment = None),
 		TestPage(
 		  title = 'ArchiveBot/Saved sites',
 		  textbefore = '<!-- bot --><!-- /bot -->',
@@ -168,13 +174,14 @@ def test_main():
 		    r'savedsite\.example\.com.*\{\{saved\}\}',
 		    '^<!-- /bot -->$',
 		   ],
+		  savecomment = 'BOT - Updating page: {{saved}} (2), {{notsaved}} (0), Total size (25&nbsp;KiB)',
 		 ),
 
-		TestPage(title = 'ArchiveBot/Transfersh/list', textbefore = '\n'.join(['https://transfer.sh/23456/bar', 'https://transfer.sh/12345/foo']), textafter = None, textafterpatterns = None),
-		TestPage(title = 'ArchiveBot/Transfersh', textbefore = '<!-- bot --><!-- /bot -->', textafter = None, textafterpatterns = ['^']), # Don't care about this, just needed to trigger the /list processing
+		TestPage(title = 'ArchiveBot/Transfersh/list', textbefore = '\n'.join(['https://transfer.sh/23456/bar', 'https://transfer.sh/12345/foo']), textafter = None, textafterpatterns = None, savecomment = None),
+		TestPage(title = 'ArchiveBot/Transfersh', textbefore = '<!-- bot --><!-- /bot -->', textafter = None, textafterpatterns = ['^'], savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (2), Total size (0&nbsp;KiB)'), # Don't care about this, just needed to trigger the /list processing
 
-		TestPage(title = 'ArchiveBot/Ixio/list', textbefore = '\n'.join(['http://ix.io/23456+/bar', 'http://ix.io/12345+/foo']), textafter = None, textafterpatterns = None),
-		TestPage(title = 'ArchiveBot/Ixio', textbefore = '<!-- bot --><!-- /bot -->', textafter = None, textafterpatterns = ['^']),
+		TestPage(title = 'ArchiveBot/Ixio/list', textbefore = '\n'.join(['http://ix.io/23456+/bar', 'http://ix.io/12345+/foo']), textafter = None, textafterpatterns = None, savecomment = None),
+		TestPage(title = 'ArchiveBot/Ixio', textbefore = '<!-- bot --><!-- /bot -->', textafter = None, textafterpatterns = ['^'], savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (2), Total size (0&nbsp;KiB)'),
 	]
 
 	viewerData = {
@@ -220,15 +227,15 @@ def test_main():
 					if failed:
 						break
 				if failed:
-					print('Page {} FAIL: pattern fault'.format(pageData.title))
+					print('Page {} text FAIL: pattern fault'.format(pageData.title))
 					fail += 1
 				else:
-					print('Page {} OK'.format(pageData.title))
+					print('Page {} text OK'.format(pageData.title))
 					ok += 1
 			else:
 				expectedText = pageData.textafter if pageData.textafter is not None else pageData.textbefore
 				if page.text != expectedText:
-					print('Page {} FAIL:'.format(pageData.title))
+					print('Page {} text FAIL:'.format(pageData.title))
 					print('Expected:')
 					print(repr(expectedText))
 					print('Got:')
@@ -236,8 +243,17 @@ def test_main():
 					print('')
 					fail += 1
 				else:
-					print('Page {} OK'.format(pageData.title))
+					print('Page {} text OK'.format(pageData.title))
 					ok += 1
+
+			if not (pageData.savecomment is None and page.savecomment is None) and pageData.savecomment != page.savecomment:
+				print('Page {} save comment FAIL:'.format(pageData.title))
+				print('Expected: {!r}'.format(pageData.savecomment))
+				print('Got: {!r}'.format(page.savecomment))
+				fail += 1
+			else:
+				print('Page {} save comment OK'.format(pageData.title))
+				ok += 1
 
 	print('main OK: {}, fail: {}'.format(ok, fail))
 

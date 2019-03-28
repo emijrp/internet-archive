@@ -122,6 +122,9 @@ def main():
             continue
 
         newtext = []
+        totaljobsize = 0
+        totalsaved = 0
+        totalnotsaved = 0
 
         # Find blocks of page text that end with a bot tag
         blocks = wtext.split('<!-- /bot -->')
@@ -171,7 +174,7 @@ def main():
             # Generate table
             c = 1
             rowsplain = ""
-            totaljobsize = 0
+            sectionjobsize = 0
             for entry in sectionentries[section]:
                 viewerplain = ''
                 viewerdetailsplain = ''
@@ -182,7 +185,7 @@ def main():
                 else:
                     viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
                     viewerdetailsplain = ''
-                totaljobsize += viewer[0][3]
+                sectionjobsize += viewer[0][3]
                 rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
                 rowspanplain = 'rowspan=%d | ' % (rowspan) if rowspan>1 else ''
                 if entry.label:
@@ -190,7 +193,12 @@ def main():
                 else:
                     rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, entry.url, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
                 c += 1
-        
+
+            totaljobsize += sectionjobsize
+            sectionsaved = rowsplain.count('{{saved}}')
+            totalsaved += sectionsaved
+            sectionnotsaved = rowsplain.count('{{notsaved}}')
+            totalnotsaved += sectionnotsaved
             output = """
 * '''Statistics''': {{saved}} (%s){{·}} {{notsaved}} (%s){{·}} Total size (%s)
 
@@ -201,7 +209,7 @@ Do not edit this table, it is automatically updated by bot. There is a [[{{FULLP
 |-
 ! Domain !! Job !! Date !! Size %s
 |}
-""" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize), rowsplain)
+""" % (sectionsaved, sectionnotsaved, convertsize(b=totaljobsize), rowsplain)
             newtext.append(output)
 
             newtext.append('<!-- /bot -->')
@@ -215,7 +223,7 @@ Do not edit this table, it is automatically updated by bot. There is a [[{{FULLP
             pywikibot.showDiff(wtext, newtext)
             page.text = newtext
             try:
-                page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
+                page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (totalsaved, totalnotsaved, convertsize(b=totaljobsize)))
             except:
                 print("Error while saving...")
         else:
