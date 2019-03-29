@@ -209,7 +209,7 @@ Do not edit this table, it is automatically updated by bot. There is a [[{{FULLP
 |-
 ! Domain !! Job !! Date !! Size %s
 |}
-""" % (sectionsaved, sectionnotsaved, convertsize(b=totaljobsize), rowsplain)
+""" % (sectionsaved, sectionnotsaved, convertsize(b=sectionjobsize), rowsplain)
             newtext.append(output)
 
             newtext.append('<!-- /bot -->')
