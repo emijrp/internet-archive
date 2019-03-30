@@ -177,6 +177,30 @@ def test_main():
 		  savecomment = 'BOT - Updating page: {{saved}} (2), {{notsaved}} (0), Total size (25&nbsp;KiB)',
 		 ),
 
+		TestPage(title = 'ArchiveBot/Saved sites sections with unsaved/list', textbefore = '\n'.join(['== One ==', 'http://alsosaved.example.net/', '', '== Two ==', 'https://example.org/', '', '== Three ==', 'https://savedsite.example.com/']), textafter = None, textafterpatterns = None, savecomment = None),
+		TestPage(
+		  title = 'ArchiveBot/Saved sites sections with unsaved',
+		  textbefore = '<!-- bot:One --><!-- /bot -->\n<!-- bot:Two --><!-- /bot -->\n<!-- bot:Three --><!-- /bot -->',
+		  textafter = None,
+		  textafterpatterns = [
+		    '^<!-- bot:One -->',
+		    r'Statistics.*\{\{saved\}\} \(1\).*\{\{notsaved\}\} \(0\).*Total size \(24&nbsp;KiB\)',
+		    r'rowspan=2.*alsosaved\.example\.net.*rowspan=2.*\{\{saved\}\}',
+		    r'https://archive\.fart\.website/archivebot/viewer/domain/alsosaved\.example\.net.*2019-01-01',
+		    r'https://archive\.fart\.website/archivebot/viewer/domain/alsosaved\.example\.net.*2019-02-01',
+		    '^<!-- /bot -->$',
+		    '^<!-- bot:Two -->',
+		    r'Statistics.*\{\{saved\}\} \(0\).*\{\{notsaved\}\} \(1\).*Total size \(0&nbsp;KiB\)',
+		    r'example\.org',
+		    '^<!-- /bot -->$',
+		    '^<!-- bot:Three -->',
+		    r'Statistics.*\{\{saved\}\} \(1\).*\{\{notsaved\}\} \(0\).*Total size \(1&nbsp;KiB\)',
+		    r'savedsite\.example\.com.*\{\{saved\}\}',
+		    '^<!-- /bot -->$',
+		   ],
+		  savecomment = 'BOT - Updating page: {{saved}} (2), {{notsaved}} (1), Total size (25&nbsp;KiB)',
+		 ),
+
 		TestPage(title = 'ArchiveBot/Transfersh/list', textbefore = '\n'.join(['https://transfer.sh/23456/bar', 'https://transfer.sh/12345/foo']), textafter = None, textafterpatterns = None, savecomment = None),
 		TestPage(title = 'ArchiveBot/Transfersh', textbefore = '<!-- bot --><!-- /bot -->', textafter = None, textafterpatterns = ['^'], savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (2), Total size (0&nbsp;KiB)'), # Don't care about this, just needed to trigger the /list processing
 
