@@ -182,10 +182,10 @@ def main():
                 if viewer[0][0]:
                     viewerplain = "[%s {{saved}}]" % (viewer[0][1])
                     viewerdetailsplain = viewer[0][2]
+                    sectionjobsize += viewer[0][3]
                 else:
                     viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
                     viewerdetailsplain = ''
-                sectionjobsize += viewer[0][3]
                 rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
                 rowspanplain = 'rowspan=%d | ' % (rowspan) if rowspan>1 else ''
                 if entry.label:
