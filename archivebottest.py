@@ -161,6 +161,24 @@ def test_main():
 		TestPage(title = 'ArchiveBot/Broken Sections/list', textbefore = '== Title ==\nhttps://example.org/', textafter = None, textafterpatterns = None, savecomment = None),
 		TestPage(title = 'ArchiveBot/Broken Sections', textbefore = 'Introduction\n<!-- bot:title --><!-- /bot -->\nEpilogue', textafter = None, textafterpatterns = None, savecomment = None),
 
+		TestPage(title = 'ArchiveBot/Empty Section/list', textbefore = '== Empty ==\n\n== Nonempty ==\nhttps://example.org/', textafter = None, textafterpatterns = None, savecomment = None),
+		TestPage(
+		  title = 'ArchiveBot/Empty Section',
+		  textbefore = 'Empty:\n<!-- bot:Empty --><!-- /bot -->\n\nNonempty:\n<!-- bot:Nonempty --><!-- /bot -->',
+		  textafter = None,
+		  textafterpatterns = [
+		    '^Empty:$',
+		    '^<!-- bot:Empty -->$',
+		    r'Statistics.*\(0\).*\(0\).*\(0&nbsp;KiB\)',
+		    '^<!-- /bot -->$',
+		    '^Nonempty:$',
+		    '^<!-- bot:Nonempty -->$',
+		    r'Statistics.*\(0\).*\(1\).*\(0&nbsp;KiB\)',
+		    '^<!-- /bot -->$',
+		   ],
+		  savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (1), Total size (0&nbsp;KiB)',
+		 ),
+
 		TestPage(title = 'ArchiveBot/Saved sites/list', textbefore = '\n'.join(['http://alsosaved.example.net/', 'https://savedsite.example.com/']), textafter = None, textafterpatterns = None, savecomment = None),
 		TestPage(
 		  title = 'ArchiveBot/Saved sites',
