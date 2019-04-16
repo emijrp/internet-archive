@@ -29,21 +29,37 @@ import pywikibot.pagegenerators as pagegenerators
 from archiveteamfun import *
 
 
-Entry = collections.namedtuple('Entry', ('sorturl', 'url', 'label', 'line'))
+Entry = collections.namedtuple('Entry', ('sorturl', 'url', 'label', 'note', 'line'))
 
 truncationpattern = re.compile(r'^[^:/]+://(www\.)?')
 
 def parselistline(line):
     label = None
+    note = None
     if '|' in line:
-        url, label = line.split('|')[0:2]
-        label = label.strip()
+        url, rest = line.split('|', 1)
+        args = map(str.strip, rest.split('|'))
+        for position, arg in enumerate(args):
+            if '=' in arg:
+                key, value = map(str.strip, arg.split('=', 1))
+                if key == 'label':
+                    label = value
+                    continue
+                elif key == 'note':
+                    note = value
+                    continue
+                # If it's neither, just treat it like it didn't have any '=' to begin with...
+            if position == 0:
+                label = arg
+            elif position == 1:
+                note = arg
+            # Everything else is ignored
     else:
         url = line
     url = url.strip()
     if '://' in url and not '/' in url.split('://')[1]:
         url = url + '/'
-    line = url + (' | ' + label if label else '')
+    line = url + (' | label = ' + label if label else '') + (' | note = ' + note if note else '')
     sorturl = truncationpattern.sub('', url).lower()
     for domain in ('transfer.sh', 'ix.io'):
         if domain == 'ix.io' and '+' not in sorturl:
@@ -52,7 +68,7 @@ def parselistline(line):
         if sorturl.startswith(domain) and sum(x == '/' for x in sorturl) == 2:
             # For file hosting URLs that contain exactly two slashes, strip the first path component = the random file ID to sort by the filename instead.
             sorturl = domain + sorturl[sorturl.index('/', len(domain) + 1):]
-    return Entry(sorturl = sorturl, url = url, label = label, line = line)
+    return Entry(sorturl = sorturl, url = url, label = label, note = note, line = line)
 
 def curateurls(wlist=''):
     # Returns a dict of sectionname => list of URLs entries
@@ -67,7 +83,7 @@ def curateurls(wlist=''):
     def endsection():
         nonlocal currentsectionentries, lines, sectionentries, currentsectionname
         currentsectionentries = list(set(currentsectionentries)) # Deduplicate
-        currentsectionentries.sort(key = lambda x: (x.sorturl, x.label if x.label is not None else '', x.url, x.line))
+        currentsectionentries.sort(key = lambda x: (x.sorturl, x.label if x.label is not None else '', x.url, x.note if x.note is not None else '', x.line))
         lines.extend(x.line for x in currentsectionentries)
         sectionentries[currentsectionname] = currentsectionentries
         currentsectionentries = []
@@ -175,6 +191,7 @@ def main():
             c = 1
             rowsplain = ""
             sectionjobsize = 0
+            sectionhasnotes = any(entry.note is not None for entry in sectionentries[section])
             for entry in sectionentries[section]:
                 viewerplain = ''
                 viewerdetailsplain = ''
@@ -189,9 +206,14 @@ def main():
                 rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
                 rowspanplain = 'rowspan=%d | ' % (rowspan) if rowspan>1 else ''
                 if entry.label:
-                    rowsplain += "\n|-\n| %s[%s %s] || %s%s\n%s " % (rowspanplain, entry.url, entry.label, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
+                    urllabel = '[%s %s]' % (entry.url, entry.label)
                 else:
-                    rowsplain += "\n|-\n| %s%s || %s%s\n%s " % (rowspanplain, entry.url, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
+                    urllabel = entry.url
+                if sectionhasnotes:
+                    notescolumn = '%s%s || ' % (rowspanplain, entry.note if entry.note is not None else '')
+                else:
+                    notescolumn = ''
+                rowsplain += "\n|-\n| %s%s || %s%s%s\n%s " % (rowspanplain, urllabel, notescolumn, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
                 c += 1
 
             totaljobsize += sectionjobsize
@@ -199,17 +221,18 @@ def main():
             totalsaved += sectionsaved
             sectionnotsaved = rowsplain.count('{{notsaved}}')
             totalnotsaved += sectionnotsaved
+            notesheader = 'rowspan=2 | Notes !! ' if sectionhasnotes else ''
             output = """
 * '''Statistics''': {{saved}} (%s){{·}} {{notsaved}} (%s){{·}} Total size (%s)
 
 Do not edit this table, it is automatically updated by bot. There is a [[{{FULLPAGENAME}}/list|raw list]] of URLs that you can edit.
 
 {| class="wikitable sortable plainlinks"
-! rowspan=2 | Website !! rowspan=2 | [[ArchiveBot]] !! colspan=4 | Archive details
+! rowspan=2 | Website !! %srowspan=2 | [[ArchiveBot]] !! colspan=4 | Archive details
 |-
 ! Domain !! Job !! Date !! Size %s
 |}
-""" % (sectionsaved, sectionnotsaved, convertsize(b=sectionjobsize), rowsplain)
+""" % (sectionsaved, sectionnotsaved, convertsize(b=sectionjobsize), notesheader, rowsplain)
             newtext.append(output)
 
             newtext.append('<!-- /bot -->')

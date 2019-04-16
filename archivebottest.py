@@ -126,7 +126,7 @@ def test_main():
 		  title = 'ArchiveBot/Simple',
 		  textbefore = '<!-- bot --><!-- /bot -->',
 		  textafter = None,
-		  textafterpatterns = ['^<!-- bot -->$', 'Statistics', 'Do not edit', r'example\.org.*\{\{notsaved\}\}', '^<!-- /bot -->$'],
+		  textafterpatterns = ['^<!-- bot -->$', 'Statistics', 'Do not edit', 'Website(?!.*Notes).*ArchiveBot', r'example\.org.*\{\{notsaved\}\}', '^<!-- /bot -->$'],
 		  savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (1), Total size (0&nbsp;KiB)',
 		 ),
 
@@ -142,6 +142,15 @@ def test_main():
 		  textbefore = '<!-- bot --><!-- /bot -->',
 		  textafter = None,
 		  textafterpatterns = ['^<!-- bot -->$', r'example\.net.*\{\{notsaved\}\}', r'example\.org.*\{\{notsaved\}\}', '^<!-- /bot -->$'],
+		  savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (2), Total size (0&nbsp;KiB)',
+		 ),
+
+		TestPage(title = 'ArchiveBot/Notes/list', textbefore = '\n'.join(['https://example.net/ | note = Something', 'https://example.org/']), textafter = None, textafterpatterns = None, savecomment = None),
+		TestPage(
+		  title = 'ArchiveBot/Notes',
+		  textbefore = '<!-- bot --><!-- /bot -->',
+		  textafter = None,
+		  textafterpatterns = ['^<!-- bot -->$', 'Statistics', 'Do not edit', 'Website.*Notes.*ArchiveBot', r'example\.net.*Something.*\{\{notsaved\}\}', r'example\.org', '^<!-- /bot -->$'],
 		  savecomment = 'BOT - Updating page: {{saved}} (0), {{notsaved}} (2), Total size (0&nbsp;KiB)',
 		 ),
 
@@ -285,18 +294,31 @@ def test_main():
 def test_parselistline():
 	inputLine = object() # Singleton to represent the input line (stripped)
 
-	def make_test_entry(iLine, sorturl, url, label, line = inputLine):
+	def make_test_entry(iLine, sorturl, url, label, note, line = inputLine):
 		f = lambda x: x if x is not inputLine else iLine.strip()
-		return (iLine, archivebot.Entry(sorturl = f(sorturl), url = f(url), label = f(label), line = f(line)))
+		return (iLine, archivebot.Entry(sorturl = f(sorturl), url = f(url), label = f(label), note = f(note), line = f(line)))
 
 	tests = [
 		# (input line str, output Entry)
-		make_test_entry(iLine = 'https://example.org/', sorturl = 'example.org/', url = inputLine, label = None),
-		make_test_entry(iLine = ' https://www.example.net/', sorturl = 'example.net/', url = inputLine, label = None),
-		make_test_entry(iLine = 'https://transfer.sh/fileid/filename', sorturl = 'transfer.sh/filename', url = inputLine, label = None),
-		make_test_entry(iLine = 'https://example.org/|Example', sorturl = 'example.org/', url = 'https://example.org/', label = 'Example', line = 'https://example.org/ | Example'),
-		make_test_entry(iLine = 'https://example.net', sorturl = 'example.net/', url = 'https://example.net/', label = None, line = 'https://example.net/'),
+		make_test_entry(iLine = 'https://example.org/', sorturl = 'example.org/', url = inputLine, label = None, note = None),
+		make_test_entry(iLine = ' https://www.example.net/', sorturl = 'example.net/', url = inputLine, label = None, note = None),
+		make_test_entry(iLine = 'https://transfer.sh/fileid/filename', sorturl = 'transfer.sh/filename', url = inputLine, label = None, note = None),
+		make_test_entry(iLine = 'https://example.org/|Example', sorturl = 'example.org/', url = 'https://example.org/', label = 'Example', note = None, line = 'https://example.org/ | label = Example'),
+		make_test_entry(iLine = 'https://example.net', sorturl = 'example.net/', url = 'https://example.net/', label = None, note = None, line = 'https://example.net/'),
 	]
+
+	# Label and note handling (various variants of entry that should all produce the same result)
+	entry = archivebot.Entry(sorturl = 'example.org/', url = 'https://example.org/', label = 'Label', note = 'Note', line = 'https://example.org/ | label = Label | note = Note')
+	tests.extend([
+		('https://example.org/|Label|Note', entry),
+		('https://example.org/|   label=Label  |  note=Note', entry),
+		('https://example.org/|Label |note = Note', entry),
+		('https://example.org/|label=Label|Note', entry),
+		('https://example.org/ | label = Label | note = Note', entry),
+		('https://example.org/ | inexistentoption = Something | label = Label | note = Note', entry),
+		('https://example.org/ | inexistentoption = Something | Note | label = Label', entry),
+		('https://example.org/ | note = Note | label = Label', entry),
+	])
 
 	ok = 0
 	fail = 0
@@ -323,10 +345,10 @@ def test_curateurls():
 			MockPage.make('ArchiveBot/Simple example/list', '\n'.join(['https://www.example.com/', 'http://example.org', 'https://example.net/', 'http://example.net/foo'])),
 			{
 				None: [
-					archivebot.Entry(sorturl = 'example.com/', url = 'https://www.example.com/', label = None, line = 'https://www.example.com/'),
-					archivebot.Entry(sorturl = 'example.net/', url = 'https://example.net/', label = None, line = 'https://example.net/'),
-					archivebot.Entry(sorturl = 'example.net/foo', url = 'http://example.net/foo', label = None, line = 'http://example.net/foo'),
-					archivebot.Entry(sorturl = 'example.org/', url = 'http://example.org/', label = None, line = 'http://example.org/'),
+					archivebot.Entry(sorturl = 'example.com/', url = 'https://www.example.com/', label = None, note = None, line = 'https://www.example.com/'),
+					archivebot.Entry(sorturl = 'example.net/', url = 'https://example.net/', label = None, note = None, line = 'https://example.net/'),
+					archivebot.Entry(sorturl = 'example.net/foo', url = 'http://example.net/foo', label = None, note = None, line = 'http://example.net/foo'),
+					archivebot.Entry(sorturl = 'example.org/', url = 'http://example.org/', label = None, note = None, line = 'http://example.org/'),
 				],
 			},
 		),
@@ -334,16 +356,17 @@ def test_curateurls():
 		# Duplicate filtering
 		(
 			MockPage.make('ArchiveBot/Duplicates/list', '\n'.join(['https://example.org', 'https://example.org/'])),
-			{None: [archivebot.Entry(sorturl = 'example.org/', url = 'https://example.org/', label = None, line = 'https://example.org/')]},
+			{None: [archivebot.Entry(sorturl = 'example.org/', url = 'https://example.org/', label = None, note = None, line = 'https://example.org/')]},
 		),
 
 		# Near-duplicate handling
 		(
-			MockPage.make('ArchiveBot/Near-duplicates/list', '\n'.join(['https://example.org/', 'https://example.org/ | Example', 'http://www.example.org/'])),
+			MockPage.make('ArchiveBot/Near-duplicates/list', '\n'.join(['https://example.org/', 'https://example.org/ | Example', 'https://example.org/ | note = Note', 'http://www.example.org/'])),
 			{None: [
-				archivebot.Entry(sorturl = 'example.org/', url = 'http://www.example.org/', label = None, line = 'http://www.example.org/'),
-				archivebot.Entry(sorturl = 'example.org/', url = 'https://example.org/', label = None, line = 'https://example.org/'),
-				archivebot.Entry(sorturl = 'example.org/', url = 'https://example.org/', label = 'Example', line = 'https://example.org/ | Example'),
+				archivebot.Entry(sorturl = 'example.org/', url = 'http://www.example.org/', label = None, note = None, line = 'http://www.example.org/'),
+				archivebot.Entry(sorturl = 'example.org/', url = 'https://example.org/', label = None, note = None, line = 'https://example.org/'),
+				archivebot.Entry(sorturl = 'example.org/', url = 'https://example.org/', label = None, note = 'Note', line = 'https://example.org/ | note = Note'),
+				archivebot.Entry(sorturl = 'example.org/', url = 'https://example.org/', label = 'Example', note = None, line = 'https://example.org/ | label = Example'),
 			]},
 		),
 	]
