@@ -189,9 +189,10 @@ def test_main():
 		TestPage(title = 'ArchiveBot/Saved sites sections with unsaved/list', textbefore = '\n'.join(['== One ==', 'http://alsosaved.example.net/', '', '== Two ==', 'https://example.org/', '', '== Three ==', 'https://savedsite.example.com/']), textafter = None, textafterpatterns = None, savecomment = None),
 		TestPage(
 		  title = 'ArchiveBot/Saved sites sections with unsaved',
-		  textbefore = '<!-- bot:One --><!-- /bot -->\n<!-- bot:Two --><!-- /bot -->\n<!-- bot:Three --><!-- /bot -->',
+		  textbefore = '<!-- bot-total-stats --><!-- /bot-total-stats -->\n<!-- bot:One --><!-- /bot -->\n<!-- bot:Two --><!-- /bot -->\n<!-- bot:Three --><!-- /bot -->',
 		  textafter = None,
 		  textafterpatterns = [
+		    r'^<!-- bot-total-stats -->.*Statistics.*\{\{saved\}\} \(2\).*\{\{notsaved\}\} \(1\).*Total size \(25&nbsp;KiB\).*<!-- /bot-total-stats -->$',
 		    '^<!-- bot:One -->',
 		    r'Statistics.*\{\{saved\}\} \(1\).*\{\{notsaved\}\} \(0\).*Total size \(24&nbsp;KiB\)',
 		    r'rowspan=2.*alsosaved\.example\.net.*rowspan=2.*\{\{saved\}\}',

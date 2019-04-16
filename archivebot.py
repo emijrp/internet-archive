@@ -148,7 +148,9 @@ def main():
         # The last block must be tag-free, so only iterate over the previous ones
         for block in blocks[:-1]:
             # Find beginning of bot tag
-            pos = block.find('<!-- bot')
+            pos = block.find('<!-- bot -->')
+            if pos == -1:
+                pos = block.find('<!-- bot:')
             if pos == -1:
                 print('Block is missing opening tag, skipping...')
                 newtext.append(block)
@@ -241,6 +243,10 @@ Do not edit this table, it is automatically updated by bot. There is a [[{{FULLP
         newtext.append(blocks[-1])
 
         newtext = ''.join(newtext)
+
+        # Replace total statistics if necessary
+        if '<!-- bot-total-stats -->' in newtext:
+            newtext = re.sub(r'<!-- bot-total-stats -->.*?<!-- /bot-total-stats -->', "<!-- bot-total-stats -->'''Statistics''': {{saved}} (%s)){{·}} {{notsaved}} (%s){{·}} Total size (%s)<!-- /bot-total-stats -->" % (totalsaved, totalnotsaved, convertsize(b = totaljobsize)), newtext)
 
         if wtext != newtext:
             pywikibot.showDiff(wtext, newtext)
