@@ -61,7 +61,7 @@ def parselistline(line):
         url = url + '/'
     line = url + (' | label = ' + label if label else '') + (' | note = ' + note if note else '')
     sorturl = truncationpattern.sub('', url).lower()
-    for domain in ('transfer.sh', 'ix.io'):
+    for domain in ('transfer.sh', 'transfer.kiska.pw', 'transfer.notkiska.pw', 'ix.io'):
         if domain == 'ix.io' and '+' not in sorturl:
             # Only apply this stripping to the undocumented trick URLs of format ix.io/code+/filename
             continue
