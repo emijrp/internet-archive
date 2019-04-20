@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2018 emijrp <emijrp@gmail.com>
+# Copyright (C) 2018-2019 emijrp <emijrp@gmail.com>
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -66,56 +66,77 @@ def main():
     
     livecams = {
         'argentina1': {
-            'originalurl': 'https://www.youtube.com/watch?v=UCTfsg3ySfE', 
+            'originalurl': 'https://www.youtube.com/watch?v=if91GyWP3zQ', 
             'licenseurl': '', 
             'tags': ["Buenos Aires", "Argentina", "obelisco", "obelisk"], 
             'source': 'https://www.youtube.com/channel/UCCkRwmztPEvut3gpsgmCmzw', 
             'uploader': 'FourSeasons BuenosAires', 
         }, 
+        'elsalvador1': {
+            'originalurl': 'https://www.youtube.com/watch?v=yHExY05gctE', 
+            'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
+            'tags': ["Santa Ana Volcano", "Ilamatepec", "Santa Ana", "El Salvador", "volcano", "stratovolcano"], 
+            'source': 'https://www.youtube.com/channel/UCpfipqQ9rdyJOBKHcdSfkDQ', 
+            'uploader': 'Ministerio de Medio Ambiente y Recursos Naturales', 
+        }, 
+        'elsalvador2': {
+            'originalurl': 'https://www.youtube.com/watch?v=NYnHAB9R7gQ', 
+            'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
+            'tags': ["Chaparrastique", "San Miguel", "El Salvador", "volcano", "stratovolcano"], 
+            'source': 'https://www.youtube.com/channel/UCpfipqQ9rdyJOBKHcdSfkDQ', 
+            'uploader': 'Ministerio de Medio Ambiente y Recursos Naturales', 
+        }, 
         'finland1': {
-            'originalurl': 'https://www.youtube.com/watch?v=YQ-ADBrkcYc', 
-            'licenseurl': 'https://creativecommons.org/licenses/by/3.0/',  
+            'originalurl': 'https://www.youtube.com/watch?v=ODIuPjfhpWo', 
+            'licenseurl': '',  
             'tags': ["Finland", "Larukite kelikamera", "Larukite"], 
             'source': 'https://www.youtube.com/channel/UCJmadTJ58HxfuPMgDm6rtrg', 
             'uploader': 'Lauttasaaren leijalautailijat ry - Larukite', 
         }, 
+        'germany1': {
+            'originalurl': 'https://www.youtube.com/watch?v=8irQZBVkIiU', 
+            'licenseurl': 'https://creativecommons.org/licenses/by/3.0/',  
+            'tags': ["Havelsee", "Brandenburg", "Germany", "White Stork", "nest", "birds"], 
+            'source': 'https://www.youtube.com/channel/UC9T055oUE7fPyPOehVmhfbA', 
+            'uploader': 'Storchennest Fohrde', 
+        }, 
         'italy1': {
-            'originalurl': 'https://www.youtube.com/watch?v=P9qjE1dm75A', 
+            'originalurl': 'https://www.youtube.com/watch?v=eE6VVJ3hvv8', 
             'licenseurl': '', 
             'tags': ["Venice", "Italy", "St. Mark's Basin"], 
             'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
             'uploader': 'I Love You Venice', 
         }, 
         'italy2': {
-            'originalurl': 'https://www.youtube.com/watch?v=vPbQcM4k1Ys', 
+            'originalurl': 'https://www.youtube.com/watch?v=BPXtn15_9qo', 
             'licenseurl': '', 
             'tags': ["Venice", "Italy", "Rialto Bridge"], 
             'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
             'uploader': 'I Love You Venice', 
         }, 
         'italy3': {
-            'originalurl': 'https://www.youtube.com/watch?v=n61yy_sL4MY', 
+            'originalurl': 'https://www.youtube.com/watch?v=cjCmsRjxVL0', 
             'licenseurl': '', 
             'tags': ["Venice", "Italy", "Grand Canal"], 
             'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
             'uploader': 'I Love You Venice', 
         }, 
         'italy4': {
-            'originalurl': 'https://www.youtube.com/watch?v=Age6SBeTyPQ', 
+            'originalurl': 'https://www.youtube.com/watch?v=5ka3YhVZgME', 
             'licenseurl': '', 
             'tags': ["Italy", "Piazza San Francesco", "Assisi", "Perugia", "Umbria"], 
             'source': 'https://www.youtube.com/channel/UC_FuR9GFVJE2A8H02sQmHWw', 
             'uploader': 'Umbria Webcam', 
         }, 
         'japan1': {
-            'originalurl': 'https://www.youtube.com/watch?v=nKMuBisZsZI', 
-            'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
+            'originalurl': 'https://www.youtube.com/watch?v=PmrWwYTlAVQ', 
+            'licenseurl': '', 
             'tags': ["Tokyo", "Japan", "Shibuya", "scramble crossing"], 
             'source': 'https://www.youtube.com/channel/UCgdHxnHSXvcAi4PaMIY1Ltg', 
             'uploader': 'SHIBUYA COMMUNITY NEWS', 
         }, 
         'japan2': {
-            'originalurl': 'https://www.youtube.com/watch?v=DNLM4N-WYyQ', 
+            'originalurl': 'https://www.youtube.com/watch?v=VxeseV6sOIk', 
             'licenseurl': '', 
             'tags': ["Tokyo", "Japan", "Tokyo Tower"], 
             'source': 'https://www.youtube.com/channel/UCKyXyJMijwyBebgI9wmzFcw', 
@@ -143,7 +164,7 @@ def main():
             'uploader': 'OCADIZ DIGITAL', 
         }, 
         'spain3': {
-            'originalurl': 'https://www.youtube.com/watch?v=qL3osQtMBls', 
+            'originalurl': 'https://www.youtube.com/watch?v=L9HyLjRVN8E', 
             'licenseurl': '', 
             'tags': ["Spain", "Catalunya", "Plaça Mercadal", "Ajuntament de Reus", "Reus"], 
             'source': 'https://www.youtube.com/channel/UCUNkMfIrFuCJDzuEsezgr5g', 
@@ -157,7 +178,7 @@ def main():
             'uploader': 'Naturum Tåkern LIVE', 
         }, 
         'usa1': {
-            'originalurl': 'https://www.youtube.com/watch?v=la90mA4VLa4', 
+            'originalurl': 'https://www.youtube.com/watch?v=KGuCGd726RA', 
             'licenseurl': '', 
             'tags': ["United States", "USA", "Brooklyn Bridge", "Manhattan"], 
             'source': 'https://www.youtube.com/channel/UCp1ojgNJ8mNWdMDsdcMRA2Q', 
@@ -171,7 +192,7 @@ def main():
             'uploader': 'IPTimelapse Webcam', 
         }, 
         'vatican1': {
-            'originalurl': 'https://www.youtube.com/watch?v=q5wc5aIpjk4', 
+            'originalurl': 'https://www.youtube.com/watch?v=vsWmAxq6-cA', 
             'licenseurl': '', 
             'tags': ["Vatican", "Vatican City", "Piazza San Pietro"], 
             'source': 'https://www.youtube.com/channel/UC7E-LYc1wivk33iyt5bR5zQ', 
