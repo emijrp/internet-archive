@@ -28,9 +28,7 @@ import pywikibot.pagegenerators as pagegenerators
 
 from archiveteamfun import *
 
-
 Entry = collections.namedtuple('Entry', ('sorturl', 'url', 'label', 'note', 'line'))
-
 truncationpattern = re.compile(r'^[^:/]+://(www\.)?')
 
 def parselistline(line):
@@ -123,7 +121,6 @@ def main():
         if len(sys.argv)>1 and not sys.argv[1] in wtitle:
             continue
         
-        #if not wtitle.startswith('ArchiveBot/National Film'):
         if not wtitle.startswith('ArchiveBot/'):
             continue
         wlist = pywikibot.Page(atsite, '%s/list' % (wtitle))
@@ -197,13 +194,13 @@ def main():
             for entry in sectionentries[section]:
                 viewerplain = ''
                 viewerdetailsplain = ''
-                viewer = [getArchiveBotViewer(url=entry.url)]
+                viewer = [getArchiveDetails(url=entry.url)]
                 if viewer[0][0]:
-                    viewerplain = "[%s {{saved}}]" % (viewer[0][1])
-                    viewerdetailsplain = viewer[0][2]
-                    sectionjobsize += viewer[0][3]
+                    viewerplain = "{{saved}}"
+                    viewerdetailsplain = viewer[0][1]
+                    sectionjobsize += viewer[0][2]
                 else:
-                    viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
+                    viewerplain = "{{notsaved}}"
                     viewerdetailsplain = ''
                 rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
                 rowspanplain = 'rowspan=%d | ' % (rowspan) if rowspan>1 else ''
@@ -215,7 +212,7 @@ def main():
                     notescolumn = '%s%s || ' % (rowspanplain, entry.note if entry.note is not None else '')
                 else:
                     notescolumn = ''
-                rowsplain += "\n|-\n| %s%s || %s%s%s\n%s " % (rowspanplain, urllabel, notescolumn, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  || ')
+                rowsplain += "\n|-\n| %s%s || %s%s%s\n%s " % (rowspanplain, urllabel, notescolumn, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  ||  || ')
                 c += 1
 
             totaljobsize += sectionjobsize
@@ -230,9 +227,9 @@ def main():
 Do not edit this table, it is automatically updated by bot. There is a [[{{FULLPAGENAME}}/list|raw list]] of URLs that you can edit.
 
 {| class="wikitable sortable plainlinks"
-! rowspan=2 | Website !! %srowspan=2 | [[ArchiveBot]] !! colspan=4 | Archive details
+! rowspan=2 | Website !! %srowspan=2 | Status !! colspan=5 | Archive details
 |-
-! Domain !! Job !! Date !! Size %s
+! Tool !! Domain !! Job !! Date !! Size %s
 |}
 """ % (sectionsaved, sectionnotsaved, convertsize(b=sectionjobsize), notesheader, rowsplain)
             newtext.append(output)

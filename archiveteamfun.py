@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2018 emijrp <emijrp@gmail.com>
+# Copyright (C) 2018-2019 emijrp <emijrp@gmail.com>
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import json
 import os
 import pickle
@@ -28,7 +29,8 @@ import urllib
 import urllib.request
 import urllib.parse
 
-cached = {}
+ArchivebotCache = {}
+ChromebotCache = {}
 
 def convertsize(b=0): #bytes
     if b < 1024: #<1KiB
@@ -44,33 +46,68 @@ def convertsize(b=0): #bytes
     elif b < 1024*1024*1024*1024*1024*1024: #<1EiB
         return '%.1f&nbsp;PiB' % (b/(1024.0*1024*1024*1024*1024))
 
-def saveCache(c={}):
-    with open('archivebot.cache', 'wb') as f:
-        pickle.dump(c, f)
-
-def loadCache():
+def loadArchivebotCache():
     c = {}
     if os.path.exists('archivebot.cache'):
         with open('archivebot.cache', 'rb') as f:
             c = pickle.load(f)
     return c.copy()
 
-def removeFromCache(url=''):
-    global cached
+def removeFromArchivebotCache(url=''):
+    global ArchivebotCache
     
-    if url and url in cached:
-        del cached[url]
-        saveCache(c=cached)
+    if url and url in ArchivebotCache:
+        del ArchivebotCache[url]
+        saveArchivebotCache(c=ArchivebotCache)
+
+def saveArchivebotCache(c={}):
+    with open('archivebot.cache', 'wb') as f:
+        pickle.dump(c, f)
+
+def loadChromebotCache():
+    c = {}
+    if os.path.exists('chromebot.cache'):
+        with open('chromebot.cache', 'rb') as f:
+            c = pickle.load(f)
+    firstcached = datetime.datetime(2019, 5, 7)
+    today = datetime.datetime.today()
+    iaquery = 'https://archive.org/advancedsearch.php?q=chromebot&fl[]=identifier&sort[]=publicdate+desc&sort[]=&sort[]=&rows=50000&page=1&output=json'
+    raw = getURL(url=iaquery, cache=False)
+    json1 = json.loads(raw)
+    for item in json1["response"]["docs"]:
+        itemname = item['identifier']
+        if not re.search(r'chromebot-\d\d\d\d-\d\d-\d\d-', itemname):
+            continue
+        itemdate = itemname.split('chromebot-')[1][:10]
+        itemdate = datetime.datetime(int(itemdate.split('-')[0]), int(itemdate.split('-')[1]), int(itemdate.split('-')[2]))
+        if itemdate >= firstcached and itemdate <= today:
+            if not itemdate.isoformat() in c:
+                c[itemdate.isoformat()] = []
+                print('Loading .json for', item, itemdate)
+                urljson = 'https://archive.org/download/%s/jobs.json' % (itemname)
+                raw2 = getURL(url=urljson, cache=False)
+                for line in raw2.splitlines():
+                    if line.startswith('{"id":'):
+                        json2 = json.loads(line)
+                        json2['item'] = itemname
+                        c[itemdate.isoformat()].append(json2)
+                        print(c[itemdate.isoformat()][-1]['id'])
+    return c.copy()
+
+def saveChromebotCache(c={}):
+    with open('chromebot.cache', 'wb') as f:
+        pickle.dump(c, f)
 
 def getURL(url='', cache=False, retry=True):
-    global cached
+    global ArchivebotCache
     
     if cache: #do not download if it is cached
-        if not cached: #empty dict
-            cached = loadCache()
-        if url in cached:
-            print("Using cached page for %s" % (url))
-            return cached[url]
+        if not ArchivebotCache: #empty dict
+            ArchivebotCache = loadArchivebotCache()
+        if url:
+            if url in ArchivebotCache:
+                print("Using cached page for %s" % (url))
+                return ArchivebotCache[url]
     
     raw = ''
     req = urllib.request.Request(url, headers={ 'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:55.0) Gecko/20100101 Firefox/55.0' })
@@ -78,9 +115,9 @@ def getURL(url='', cache=False, retry=True):
         print("Retrieving: %s" % (url))
         raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
         if cache: #refresh cache
-            cached[url] = raw
-            if not random.randint(0, 5):
-                saveCache(c=cached)
+            ArchivebotCache[url] = raw
+            if not random.randint(0, 10):
+                saveArchivebotCache(c=ArchivebotCache)
     except:
         sleep = 10 # seconds
         maxsleep = 30
@@ -91,7 +128,7 @@ def getURL(url='', cache=False, retry=True):
             try:
                 raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
                 if cache: #refresh cache
-                    cached[url] = raw
+                    ArchivebotCache[url] = raw
             except:
                 pass
             sleep = sleep * 2
@@ -111,15 +148,18 @@ def loadSPARQL(sparql=''):
         return 
     return
 
-def getArchiveBotViewerDetails(url='', singleurl=False):
+def getArchiveDetailsArchivebot(url='', singleurl=False):
     viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
     origdomain = url.split('//')[1].split('/')[0]
     origdomain2 = re.sub(r'(?im)^(www\d*)\.', '.', origdomain)
     rawdomains = getURL(url=viewerurl, cache=True)
     domains = re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)
+    if not domains:
+        removeFromArchivebotCache(url=viewerurl)
     details = []
     totaljobsize = 0
-    jobslimit = 1000 #limit, to avoid twitter, facebook and other with many jobs
+    jobslimit = 5000 #limit, to avoid long sites like twitter, facebook and other with many jobs
+    tool = 'ArchiveBot'
     for domain in domains:
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
@@ -132,7 +172,7 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
             jsonfile = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
             
             if not jsonfile: #job in progress, remove cache
-                removeFromCache(url=urljob)
+                removeFromArchivebotCache(url=urljob)
                 continue
             
             if singleurl:
@@ -146,7 +186,7 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
             
             warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
             if not warcs: #job in progress, remove cache
-                removeFromCache(url=urljob)
+                removeFromArchivebotCache(url=urljob)
                 continue
             jobaborted = False
             if '-aborted-' in rawjob or '-aborted.json' in rawjob:
@@ -164,29 +204,55 @@ def getArchiveBotViewerDetails(url='', singleurl=False):
             if jobdate and jobdate != 'nodate':
                 jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
             if jobsize < 1024:
-                jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
             else:
                 if jobaborted:
-                    jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{orange|%s}}" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                    jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{orange|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
                 else:
-                    jobdetails = "| [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                    jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
             totaljobsize += jobsize
             details.append(jobdetails)
+    return details, totaljobsize
+
+def getArchiveDetailsChromebot(url='', singleurl=False):
+    global ChromebotCache
+    details = []
+    totaljobsize = 0
+    if not ChromebotCache: #empty dict
+        ChromebotCache = loadChromebotCache()
+    #{"id": "bajop-tomur-fagok-huzol", "user": "eientei95", "date": "2019-05-21T11:51:09.286515", "warcsize": 2775866, "url": "https://twitter.com/...", "urlcount": 1}
+    tool = 'Chromebot'
+    for date, jobs in ChromebotCache.items():
+        for job in jobs:
+            if url == job['url']:
+                domain = job['url'].split('://')[1].split('/')[0]
+                jobid = job['id'].split('-')[-1] # last chunk seems unique
+                jobdate = job['date'].split('T')[0]
+                jobsize = int(job['warcsize'])
+                itemname = job['item']
+                if job['warcsize'] < 1024:
+                    jobdetails = "| [[%s]] || %s || [https://archive.org/download/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (tool, domain, itemname, jobid, jobdate, jobsize, convertsize(b=jobsize))
+                else:
+                    jobdetails = "| [[%s]] || %s || [https://archive.org/download/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (tool, domain, itemname, jobid, jobdate, jobsize, convertsize(b=jobsize))
+                totaljobsize += jobsize
+                details.append(jobdetails)
+    return details, totaljobsize
+
+def getArchiveDetailsCore(url='', singleurl=False):
+    detailsArchivebot, totaljobsizeArchivebot = getArchiveDetailsArchivebot(url=url, singleurl=singleurl)
+    detailsChromebot, totaljobsizeChromebot = getArchiveDetailsChromebot(url=url, singleurl=singleurl)
+    
+    details = detailsArchivebot + detailsChromebot
+    totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot
+    
     detailsplain = '\n|-\n'.join(details)
     return detailsplain, totaljobsize
 
-def getArchiveBotViewer(url=''):
+def getArchiveDetails(url=''):
     if url and '://' in url:
-        if '://archive.org/' in url or '://www.webcitation.org/' in url:
-            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
-        """if '://transfer.sh/' in url:
-            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
-        if '://facebook.com/' in url or '://www.facebook.com/' in url:
-            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
-        if '://twitter.com/' in url or '://www.twitter.com/' in url:
-            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
-        if '://instagram.com/' in url or '://www.instagram.com/' in url:
-            return False, 'https://archive.fart.website/archivebot/viewer/', '', 0"""
+        if '://archive.org/' in url or \
+           '://www.webcitation.org/' in url:
+            return False, '', 0
         
         domain = url.split('://')[1].split('/')[0]
         viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
@@ -194,18 +260,25 @@ def getArchiveBotViewer(url=''):
         if raw and '</form>' in raw:
             raw = raw.split('</form>')[1]
         else:
-            return False, viewerurl, '', 0
+            return False, '', 0
         if re.search(r'No search results', raw):
-            return False, viewerurl, '', 0
+            return False, '', 0
         else:
             if len(url.split(domain)[1]) > 1: #url is domain.ext/more
-                details, totaljobsize = getArchiveBotViewerDetails(url=url, singleurl=True)
-                return details and True or False, viewerurl, details, totaljobsize
+                details, totaljobsize = getArchiveDetailsCore(url=url, singleurl=True)
+                return details and True or False, details, totaljobsize
             elif domain.lower() in raw.lower(): #url is domain.ext
-                details, totaljobsize = getArchiveBotViewerDetails(url=url)
-                return True, viewerurl, details, totaljobsize
+                details, totaljobsize = getArchiveDetailsCore(url=url)
+                return True, details, totaljobsize
             else:
-                details, totaljobsize = getArchiveBotViewerDetails(url=url)
-                return False, viewerurl, details, totaljobsize
+                details, totaljobsize = getArchiveDetailsCore(url=url)
+                return False, details, totaljobsize
     else:
-        return False, 'https://archive.fart.website/archivebot/viewer/', '', 0
+        return False, '', 0
+
+def main():
+    ChromebotCache = loadChromebotCache()
+    saveChromebotCache(c=ChromebotCache)
+
+if __name__ == "__main__":
+    main()
