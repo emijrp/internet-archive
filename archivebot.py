@@ -107,7 +107,6 @@ def curateurls(wlist=''):
 
     return sectionentries
 
-
 def main():
     atsite = pywikibot.Site('archiveteam', 'archiveteam')
     cat = pywikibot.Category(atsite, "Category:ArchiveBot")

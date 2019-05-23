@@ -79,7 +79,7 @@ def main():
                 continue #duplicate row because multiple birthdates resolution (1940, 1940-02-01, etc)
             else:
                 outputlist.append(website)
-            viewer = [getArchiveBotViewer(url=website)]
+            viewer = [getArchiveDetails(url=website)]
             
             if not website:
                 continue
@@ -99,12 +99,12 @@ def main():
             viewerplain = ''
             viewerdetailsplain = ''
             if viewer[0][0]:
-                viewerplain = "[%s {{saved}}]" % (viewer[0][1])
-                viewerdetailsplain = viewer[0][2]
+                viewerplain = "{{saved}}"
+                viewerdetailsplain = viewer[0][1]
             else:
-                viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
+                viewerplain = "{{notsaved}}"
                 viewerdetailsplain = ''
-            totaljobsize += viewer[0][3]
+            totaljobsize += viewer[0][2]
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
             rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
@@ -116,9 +116,9 @@ def main():
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
 {| class="wikitable sortable plainlinks"
-! rowspan=2 width=150px | Name !! rowspan=2 | Description !! rowspan=2 | Birth date !! rowspan=2 | Death date !! rowspan=2 | Cause of death !! rowspan=2 | Website !! rowspan=2 width=100px | [[ArchiveBot]] !! colspan=4 | Archive details
+! rowspan=2 width=150px | Name !! rowspan=2 | Description !! rowspan=2 | Birth date !! rowspan=2 | Death date !! rowspan=2 | Cause of death !! rowspan=2 | Website !! rowspan=2 width=100px | Status !! colspan=5 | Archive details
 |-
-! Domain !! Job !! Date !! Size %s
+! Tool !! Domain !! Job !! Date !! Size %s
 |}
 
 {{deathwatch}}
@@ -153,4 +153,3 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
 
 if __name__ == '__main__':
     main()
-

@@ -91,7 +91,7 @@ def loadChromebotCache():
                         json2 = json.loads(line)
                         json2['item'] = itemname
                         c[itemdate.isoformat()].append(json2)
-                        print(c[itemdate.isoformat()][-1]['id'])
+                        #print(c[itemdate.isoformat()][-1]['id'])
     return c.copy()
 
 def saveChromebotCache(c={}):
@@ -164,54 +164,55 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
-        rawjobs = getURL(url=urljobs, cache=True)
+        rawjobs = getURL(url=urljobs, cache=False) #not time consuming, don't cache
         jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
         for job in jobs[:jobslimit]: 
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
-            rawjob = getURL(url=urljob, cache=True)
-            jsonfile = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
+            rawjob = getURL(url=urljob, cache=True) #many jobs = time consuming (example: Twitter), but don't cache jobs without json (job probably in progress or broken) removed below with removeFromArchivebotCache()
+            jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
             
-            if not jsonfile: #job in progress, remove cache
+            if not jsonfiles: #job in progress, remove cache
                 removeFromArchivebotCache(url=urljob)
                 continue
             
-            if singleurl:
-                if jsonfile:
-                    jsonurl = jsonfile[0]
-                    jsonraw = getURL(url=jsonurl, cache=True)
-                    if not url in jsonraw:
+            for jsonfile in jsonfiles:
+                if singleurl:
+                    if jsonfile:
+                        jsonurl = jsonfile
+                        jsonraw = getURL(url=jsonurl, cache=True) #cache json from internet archive
+                        if not url in jsonraw:
+                            continue
+                    else:
                         continue
-                else:
-                    continue
-            
-            warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
-            if not warcs: #job in progress, remove cache
-                removeFromArchivebotCache(url=urljob)
-                continue
-            jobaborted = False
-            if '-aborted-' in rawjob or '-aborted.json' in rawjob:
-                jobaborted = True
-            jobdate = ''
-            jobsize = 0
-            for warc in warcs:
-                jobdate = warc[0]
-                jobsize += int(warc[1])
-            if not jobdate:
-                if re.search(r"(?im)-(\d{8})-\d{6}-", rawjob):
-                    jobdate = re.findall(r"-(\d{8})-\d{6}-", rawjob)[0]
-                else:
-                    jobdate = 'nodate'
-            if jobdate and jobdate != 'nodate':
-                jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
-            if jobsize < 1024:
-                jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
-            else:
-                if jobaborted:
-                    jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{orange|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
-                else:
-                    jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
-            totaljobsize += jobsize
-            details.append(jobdetails)
+                
+                jobproblem = False
+                warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
+                if not warcs: #job in progress, remove cache
+                    removeFromArchivebotCache(url=urljob)
+                    jobproblem = True
+                jobdatetimes = []
+                for warc in warcs:
+                    jobdatetimes.append("%s-%s" % (warc[0], warc[1]))
+                jobdatetimes = list(set(jobdatetimes))
+                for jobdatetime in jobdatetimes:
+                    if not jobdatetime in jsonfile:
+                        continue
+                    jobaborted = False
+                    if ('%s-%s-aborted-' % (jobdatetime, job)) in rawjob or ('%s-%s-aborted.json' % (jobdatetime, job)) in rawjob:
+                        jobaborted = True
+                    jobdate = '-' in jobdatetime and jobdatetime.split('-')[0] or 'nodate'
+                    jobsize = sum([jobdatetime == '%s-%s' % (warc[0], warc[1]) and int(warc[2]) or 0 for warc in warcs])
+                    if jobdate and jobdate != 'nodate':
+                        jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
+                    if jobsize < 1024:
+                        jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                    else:
+                        if jobaborted or jobproblem:
+                            jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{orange|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                        else:
+                            jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                    totaljobsize += jobsize
+                    details.append(jobdetails)
     return details, totaljobsize
 
 def getArchiveDetailsChromebot(url='', singleurl=False):
@@ -220,6 +221,7 @@ def getArchiveDetailsChromebot(url='', singleurl=False):
     totaljobsize = 0
     if not ChromebotCache: #empty dict
         ChromebotCache = loadChromebotCache()
+        saveChromebotCache(c=ChromebotCache)
     #{"id": "bajop-tomur-fagok-huzol", "user": "eientei95", "date": "2019-05-21T11:51:09.286515", "warcsize": 2775866, "url": "https://twitter.com/...", "urlcount": 1}
     tool = 'Chromebot'
     for date, jobs in ChromebotCache.items():

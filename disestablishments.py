@@ -123,7 +123,7 @@ def main():
                             print("Skiping url, word in spam filter")
                             continue
                         websites.append(web)
-                        viewer.append(getArchiveBotViewer(url=web))
+                        viewer.append(getArchiveDetails(url=web))
                         if not web in outputlist:
                             outputlist.append(web)
                         break #just 1 url
@@ -144,12 +144,12 @@ def main():
             viewerplain = ''
             viewerdetailsplain = ''
             if viewer[0][0]:
-                viewerplain = "[%s {{saved}}]" % (viewer[0][1])
-                viewerdetailsplain = viewer[0][2]
+                viewerplain = "{{saved}}"
+                viewerdetailsplain = viewer[0][1]
             else:
-                viewerplain = "[%s {{notsaved}}]" % (viewer[0][1])
+                viewerplain = "{{notsaved}}"
                 viewerdetailsplain = ''
-            totaljobsize += viewer[0][3]
+            totaljobsize += viewer[0][2]
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
             rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s%s || %s%s || %s%s\n%s " % (rowspanplain, q, wtitle, rowspanplain, p31, rowspanplain, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', rowspanplain, websites and '<br/>'.join(websites) or '-', rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
@@ -161,9 +161,9 @@ def main():
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
 {| class="wikitable sortable plainlinks"
-! rowspan=2 | Title !! rowspan=2 | Topic !! rowspan=2 | Description !! rowspan=2 | Website !! rowspan=2 width=100px | [[ArchiveBot]] !! colspan=4 | Archive details
+! rowspan=2 | Title !! rowspan=2 | Topic !! rowspan=2 | Description !! rowspan=2 | Website !! rowspan=2 width=100px | Status !! colspan=5 | Archive details
 |-
-! Domain !! Job !! Date !! Size %s
+! Tool !! Domain !! Job !! Date !! Size %s
 |}
 
 {{Deathwatch}}
