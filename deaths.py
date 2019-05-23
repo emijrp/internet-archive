@@ -107,7 +107,7 @@ def main():
             totaljobsize += viewer[0][2]
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
-            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
+            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  || ')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s deaths|Category:%s deaths]]'''. The websites for these entities could vanish in the foreseable future.
 

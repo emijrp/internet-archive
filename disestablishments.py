@@ -152,7 +152,7 @@ def main():
             totaljobsize += viewer[0][2]
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
-            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s%s || %s%s || %s%s\n%s " % (rowspanplain, q, wtitle, rowspanplain, p31, rowspanplain, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', rowspanplain, websites and '<br/>'.join(websites) or '-', rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  || ')
+            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s%s || %s%s || %s%s\n%s " % (rowspanplain, q, wtitle, rowspanplain, p31, rowspanplain, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', rowspanplain, websites and '<br/>'.join(websites) or '-', rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  || ')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s disestablishments|Category:%s disestablishments]]'''. The websites for these entities could vanish in the foreseable future.
 
