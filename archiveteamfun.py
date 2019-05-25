@@ -61,8 +61,15 @@ def removeFromArchivebotCache(url=''):
         saveArchivebotCache(c=ArchivebotCache)
 
 def saveArchivebotCache(c={}):
+    global ArchivebotCache
+    
+    c2 = loadArchivebotCache()
+    for url, raw in c2.items():
+        if not url in c:
+            c[url] = raw
     with open('archivebot.cache', 'wb') as f:
         pickle.dump(c, f)
+    ArchivebotCache = c.copy()
 
 def cleanArchiveBotCache():
     global ArchivebotCache
@@ -131,7 +138,7 @@ def getURL(url='', cache=False, retry=True):
         raw = urllib.request.urlopen(req).read().strip().decode('utf-8')
         if cache: #refresh cache
             ArchivebotCache[url] = raw
-            if not random.randint(0, 10):
+            if not random.randint(0, 100):
                 saveArchivebotCache(c=ArchivebotCache)
     except:
         sleep = 10 # seconds

@@ -196,6 +196,8 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
                 print("Error while saving...")
         else:
             print("No changes needed in", pagelist.title())
+    
+    cleanArchiveBotCache()
 
 if __name__ == '__main__':
     main()
