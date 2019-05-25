@@ -61,15 +61,8 @@ def removeFromArchivebotCache(url=''):
         saveArchivebotCache(c=ArchivebotCache)
 
 def saveArchivebotCache(c={}):
-    global ArchivebotCache
-    
-    c2 = loadArchivebotCache()
-    for url, raw in c2.items():
-        if not url in c:
-            c[url] = raw
     with open('archivebot.cache', 'wb') as f:
         pickle.dump(c, f)
-    ArchivebotCache = c.copy()
 
 def cleanArchiveBotCache():
     global ArchivebotCache
