@@ -154,21 +154,27 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
     origdomain2 = re.sub(r'(?im)^(www\d*)\.', '.', origdomain)
     rawdomains = getURL(url=viewerurl, cache=True)
     domains = re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)
-    if not domains:
+    if not domains: #no results for this url, remove cache
         removeFromArchivebotCache(url=viewerurl)
     details = []
     totaljobsize = 0
-    jobslimit = 5000 #limit, to avoid long sites like twitter, facebook and other with many jobs
+    jobslimit = 100000 #limit, to avoid long sites like twitter, facebook and other with many jobs
     tool = 'ArchiveBot'
     for domain in domains:
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
-        rawjobs = getURL(url=urljobs, cache=False) #not time consuming, don't cache
+        rawjobs = getURL(url=urljobs, cache=True)
         jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
+        if 'twitter.com' in domain or \
+            'facebook.com' in domain or \
+            'instagram.com' in domain or \
+            'youtube.com' in domain or \
+            len(jobs) >= 10:
+            removeFromArchivebotCache(url=urljobs)
         for job in jobs[:jobslimit]: 
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
-            rawjob = getURL(url=urljob, cache=True) #many jobs = time consuming (example: Twitter), but don't cache jobs without json (job probably in progress or broken) removed below with removeFromArchivebotCache()
+            rawjob = getURL(url=urljob, cache=True)
             jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
             
             if not jsonfiles: #job in progress, remove cache
