@@ -28,6 +28,7 @@ from archiveteamfun import *
 
 def cleanwiki(wtext):
     wtext = re.sub(r"(?im)<!--.*?-->", r"", wtext)
+    wtext = re.sub(r"(?im)<!--.*?", r"", wtext)
     wtext = re.sub(r"(?im)\[\[[^\[\]]+?\|([^\[\]]+?)\]\]", r"\1", wtext)
     wtext = re.sub(r"(?im)\[\[([^\[\]]+?)\]\]", r"\1", wtext)
     wtext = re.sub(r"(?im)<ref[^<>]*?>[^<>]*?</ref>", r"", wtext)
