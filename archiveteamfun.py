@@ -64,6 +64,21 @@ def saveArchivebotCache(c={}):
     with open('archivebot.cache', 'wb') as f:
         pickle.dump(c, f)
 
+def cleanArchiveBotCache():
+    global ArchivebotCache
+    ArchivebotCache2 = ArchivebotCache.copy()
+    
+    for url, raw in ArchivebotCache2.items():
+        if url.startswith("https://archive.fart.website/archivebot/viewer/domain/"):
+            domain = url.split("https://archive.fart.website/archivebot/viewer/domain/")[1]
+            jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", raw)
+            if domain == 'twitter.com' or \
+                domain == 'www.facebook.com' or \
+                domain == 'instagram.com' or domain == 'www.instagram.com' or \
+                domain == 'www.youtube.com' or \
+                len(jobs) >= 10:
+                removeFromArchivebotCache(url=url)
+
 def loadChromebotCache():
     c = {}
     if os.path.exists('chromebot.cache'):
@@ -158,7 +173,7 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
         removeFromArchivebotCache(url=viewerurl)
     details = []
     totaljobsize = 0
-    jobslimit = 100000 #limit, to avoid long sites like twitter, facebook and other with many jobs
+    jobslimit = 100000
     tool = 'ArchiveBot'
     for domain in domains:
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
@@ -166,18 +181,12 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
         rawjobs = getURL(url=urljobs, cache=True)
         jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
-        if 'twitter.com' in domain or \
-            'facebook.com' in domain or \
-            'instagram.com' in domain or \
-            'youtube.com' in domain or \
-            len(jobs) >= 10:
-            removeFromArchivebotCache(url=urljobs)
         for job in jobs[:jobslimit]: 
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
             rawjob = getURL(url=urljob, cache=True)
             jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
             
-            if not jsonfiles: #job in progress, remove cache
+            if not jsonfiles and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), rawjob): #job in progress, remove cache
                 removeFromArchivebotCache(url=urljob)
                 continue
             

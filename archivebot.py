@@ -253,6 +253,8 @@ Do not edit this table, it is automatically updated by bot. There is a [[{{FULLP
                 print("Error while saving...")
         else:
             print("No changes needed in", page.title())
+    
+    cleanArchiveBotCache()
 
 if __name__ == '__main__':
     main()
