@@ -78,6 +78,14 @@ def cleanArchiveBotCache():
                 domain == 'www.youtube.com' or \
                 len(jobs) >= 10:
                 removeFromArchivebotCache(url=url)
+        
+        if url.startswith("https://archive.fart.website/archivebot/viewer/job/"):
+            jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', raw)
+            if not jsonfiles and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), raw): #job in progress, remove cache
+                removeFromArchivebotCache(url=url)
+            warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), raw)
+            if not warcs and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), raw): #job in progress, remove cache
+                removeFromArchivebotCache(url=urljob)
 
 def loadChromebotCache():
     c = {}
@@ -121,7 +129,7 @@ def getURL(url='', cache=False, retry=True):
             ArchivebotCache = loadArchivebotCache()
         if url:
             if url in ArchivebotCache:
-                print("Using cached page for %s" % (url))
+                #print("Using cached page for %s" % (url))
                 return ArchivebotCache[url]
     
     raw = ''
@@ -185,11 +193,6 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
             rawjob = getURL(url=urljob, cache=True)
             jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
-            
-            if not jsonfiles and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), rawjob): #job in progress, remove cache
-                removeFromArchivebotCache(url=urljob)
-                continue
-            
             for jsonfile in jsonfiles:
                 if singleurl:
                     if jsonfile:
@@ -202,8 +205,7 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                 
                 jobproblem = False
                 warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
-                if not warcs: #job in progress, remove cache
-                    removeFromArchivebotCache(url=urljob)
+                if not warcs:
                     jobproblem = True
                 jobdatetimes = []
                 for warc in warcs:

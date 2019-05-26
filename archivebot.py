@@ -112,7 +112,7 @@ def main():
     cat = pywikibot.Category(atsite, "Category:ArchiveBot")
     gen = pagegenerators.CategorizedPageGenerator(cat, start="!")
     pre = pagegenerators.PreloadingGenerator(gen, pageNumber=60)
-    
+    listlenlimit = 1000
     for page in pre:
         wtitle = page.title()
         wtext = page.text
@@ -131,6 +131,8 @@ def main():
         print('\n===', wtitle, '===')
         if (not '<!-- bot -->' in wtext and not '<!-- bot:' in wtext) or not '<!-- /bot -->' in wtext:
             print("No <!-- bot --> tag. Skiping...")
+            continue
+        if len(wlist.text.splitlines()) > listlenlimit:
             continue
 
         newtext = []
