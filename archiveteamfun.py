@@ -80,12 +80,13 @@ def cleanArchiveBotCache():
                 removeFromArchivebotCache(url=url)
         
         if url.startswith("https://archive.fart.website/archivebot/viewer/job/"):
+            job = url.split("https://archive.fart.website/archivebot/viewer/job/")[1]
             jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', raw)
             if not jsonfiles and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), raw): #job in progress, remove cache
                 removeFromArchivebotCache(url=url)
             warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), raw)
             if not warcs and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), raw): #job in progress, remove cache
-                removeFromArchivebotCache(url=urljob)
+                removeFromArchivebotCache(url=url)
 
 def loadChromebotCache():
     c = {}
