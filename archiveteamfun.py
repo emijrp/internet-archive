@@ -128,7 +128,7 @@ def loadWikiteamCache():
     if os.path.exists('wikiteam.cache'):
         with open('wikiteam.cache', 'rb') as f:
             c = pickle.load(f)
-    iaquery = 'https://archive.org/advancedsearch.php?q=collection%3Awikiteam+AND+subject%3AMediaWiki&fl[]=identifier&fl[]=originalurl&sort[]=&sort[]=&sort[]=&rows=5000000&page=1&output=json'
+    iaquery = 'https://archive.org/advancedsearch.php?q=collection%3Awikiteam&fl[]=identifier&fl[]=originalurl&sort[]=&sort[]=&sort[]=&rows=5000000&page=1&output=json'
     raw = getURL(url=iaquery, cache=False)
     json1 = json.loads(raw)
     for item in json1["response"]["docs"]:
@@ -136,6 +136,8 @@ def loadWikiteamCache():
             continue
         itemname = item['identifier']
         originalurl = item['originalurl']
+        if type(originalurl) is list:
+            originalurl = originalurl[0]
         #if not itemname.startswith('wiki-'):
         #    continue
         c[itemname] = { 'originalurl': originalurl }
@@ -195,6 +197,19 @@ def loadSPARQL(sparql=''):
         return 
     return
 
+def genJobDetails(tool='', domainlink='', joburl='', jobdate='', jobsize='', jobaborted=False, jobproblem=False):
+    jobdetails = ""
+    if jobsize < 1024:
+        jobdetails = "| [[%s]] || %s || %s || %s || data-sort-value=%d | {{red|%s}}" % (tool, domainlink, joburl, jobdate, jobsize, convertsize(b=jobsize))
+    else:
+        jobcolor = 'green'
+        if jobaborted:
+            jobcolor = 'orange'
+        if jobproblem:
+            jobcolor = 'purple'
+        jobdetails = "| [[%s]] || %s || %s || %s || data-sort-value=%d | {{%s|%s}}" % (tool, domainlink, joburl, jobdate, jobsize, jobcolor, convertsize(b=jobsize))
+    return jobdetails
+
 def getArchiveDetailsArchivebot(url='', singleurl=False):
     viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
     origdomain = url.split('//')[1].split('/')[0]
@@ -213,8 +228,8 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
         rawjobs = getURL(url=urljobs, cache=True)
         jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
-        for job in jobs[:jobslimit]: 
-            urljob = "https://archive.fart.website/archivebot/viewer/job/" + job
+        for jobid in jobs[:jobslimit]: 
+            urljob = "https://archive.fart.website/archivebot/viewer/job/" + jobid
             rawjob = getURL(url=urljob, cache=True)
             jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
             for jsonfile in jsonfiles:
@@ -228,7 +243,7 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                         continue
                 
                 jobproblem = False
-                warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), rawjob)
+                warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (jobid), rawjob)
                 if not warcs:
                     jobproblem = True
                 jobdatetimes = []
@@ -239,19 +254,13 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                     if not jobdatetime in jsonfile:
                         continue
                     jobaborted = False
-                    if ('%s-%s-aborted-' % (jobdatetime, job)) in rawjob or ('%s-%s-aborted.json' % (jobdatetime, job)) in rawjob:
+                    if ('%s-%s-aborted-' % (jobdatetime, jobid)) in rawjob or ('%s-%s-aborted.json' % (jobdatetime, jobid)) in rawjob:
                         jobaborted = True
                     jobdate = '-' in jobdatetime and jobdatetime.split('-')[0] or 'nodate'
                     jobsize = sum([jobdatetime == '%s-%s' % (warc[0], warc[1]) and int(warc[2]) or 0 for warc in warcs])
                     if jobdate and jobdate != 'nodate':
                         jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
-                    if jobsize < 1024:
-                        jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
-                    else:
-                        if jobaborted or jobproblem:
-                            jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{orange|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
-                        else:
-                            jobdetails = "| [[%s]] || [https://archive.fart.website/archivebot/viewer/domain/%s %s] || [https://archive.fart.website/archivebot/viewer/job/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (tool, domain, domain, job, job, jobdate, jobsize, convertsize(b=jobsize))
+                    jobdetails = genJobDetails(tool=tool, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobid, jobid), jobdate=jobdate, jobsize=jobsize)
                     totaljobsize += jobsize
                     details.append(jobdetails)
     return details, totaljobsize
@@ -273,10 +282,7 @@ def getArchiveDetailsChromebot(url='', singleurl=False):
                 jobdate = job['date'].split('T')[0]
                 jobsize = int(job['warcsize'])
                 itemname = job['item']
-                if job['warcsize'] < 1024:
-                    jobdetails = "| [[%s]] || %s || [https://archive.org/download/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (tool, domain, itemname, jobid, jobdate, jobsize, convertsize(b=jobsize))
-                else:
-                    jobdetails = "| [[%s]] || %s || [https://archive.org/download/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (tool, domain, itemname, jobid, jobdate, jobsize, convertsize(b=jobsize))
+                jobdetails = genJobDetails(tool=tool, domainlink=domain, joburl="[https://archive.org/download/%s %s]" % (itemname, jobid), jobdate=jobdate, jobsize=jobsize)
                 totaljobsize += jobsize
                 details.append(jobdetails)
     return details, totaljobsize
@@ -290,25 +296,34 @@ def getArchiveDetailsWikiteam(url='', singleurl=False):
         saveWikiteamCache(c=WikiteamCache)
     tool = 'WikiTeam'
     for itemname, props in WikiteamCache.items():
-        if props['originalurl'].startswith(url):
-            #we use every file in item like a different job
+        itemname_ = re.sub(r'(?im)^wiki-', '', itemname)
+        if props['originalurl'].startswith(url.rstrip('/')):
+            #if item files follows wikidump/history filename style, we use every file in item like a different job
+            #otherwise we count just 1 job and sum all file sizes
+            domain = props['originalurl'].split('://')[1].split('/')[0]
             urlfiles = 'https://archive.org/download/%s/%s_files.xml' % (itemname, itemname)
             rawfiles = getURL(url=urlfiles, cache=True)
-            xjobs = []
-            for xfile in rawfiles.split('</file>'):
-                itemname_ = re.sub(r'(?im)^wiki-', '', itemname)
-                m = re.findall(r'(?im)<file name="((%s)-(\d{8})-(wikidump|history)\.[^ ]+?)" source="original">' % (itemname_), xfile)
-                if not m:
-                    continue
-                m = m[0]
-                domain = props['originalurl'].split('://')[1].split('/')[0]
-                jobid = m[3]
-                jobdate = '%s-%s-%s' % (m[2][0:4], m[2][4:6], m[2][6:8])
-                jobsize = int(re.findall(r'(?im)<size>(\d+)</size>', xfile)[0])
-                if jobsize < 1024:
-                    jobdetails = "| [[%s]] || %s || [https://archive.org/download/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (tool, domain, itemname, jobid, jobdate, jobsize, convertsize(b=jobsize))
-                else:
-                    jobdetails = "| [[%s]] || %s || [https://archive.org/download/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (tool, domain, itemname, jobid, jobdate, jobsize, convertsize(b=jobsize))
+            isstandard = re.search(r'(?im)<file name="((%s)-(\d{8})-(wikidump|history)\.[^ ]+?)" source="original">' % (itemname_), rawfiles) and True or False
+            if isstandard:
+                for xfile in rawfiles.split('</file>'):
+                    jobid = 'job'
+                    jobdate = 'date'
+                    jobsize = re.findall(r'(?im)<size>(\d+)</size>', xfile) and int(re.findall(r'(?im)<size>(\d+)</size>', xfile)[0]) or 0
+                    m = re.findall(r'(?im)<file name="((%s)-(\d{8})-(wikidump|history)\.[^ ]+?)" source="original">' % (itemname_), xfile)
+                    if m:
+                        m = m[0]
+                        jobid = m[3]
+                        jobdate = '%s-%s-%s' % (m[2][0:4], m[2][4:6], m[2][6:8])
+                        jobdetails = genJobDetails(tool=tool, domainlink=domain, joburl="[https://archive.org/download/%s %s]" % (itemname, jobid), jobdate=jobdate, jobsize=jobsize)
+                        totaljobsize += jobsize
+                        details.append(jobdetails)
+            else:
+                jobid = 'other'
+                jobdate = re.findall(r'(?im)<mtime>(\d+)</mtime>', rawfiles) and int(re.findall(r'(?im)<mtime>(\d+)</mtime>', rawfiles)[0]) or 'date'
+                if type(jobdate) is int:
+                    jobdate = datetime.datetime.utcfromtimestamp(jobdate).strftime('%Y-%m-%d')
+                jobsize = sum([int(x) for x in re.findall(r'(?im)<size>(\d+)</size>', rawfiles)])
+                jobdetails = genJobDetails(tool=tool, domainlink=domain, joburl="[https://archive.org/download/%s %s]" % (itemname, jobid), jobdate=jobdate, jobsize=jobsize)
                 totaljobsize += jobsize
                 details.append(jobdetails)
     return details, totaljobsize
