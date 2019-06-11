@@ -45,13 +45,17 @@ def main():
                     time.sleep(60)
                     html = str(urllib.request.urlopen(req).read())
             
-            screennames = re.findall(r'(?im)data-screen-name="([^" ]+?)"', html)
-            screennames = list(set(screennames))
-            name = re.findall(r'(?im),&quot;name&quot;:&quot;(.*?)&quot;,', html)[0]
-            tweets = int(re.findall(r'statuses_count&quot;:(\d+),', html)[0])
-            followers = int(re.findall(r'followers_count&quot;:(\d+),', html)[0])
-            following = int(re.findall(r'friends_count&quot;:(\d+),', html)[0])
-            favorites = int(re.findall(r'favourites_count&quot;:(\d+),', html)[0])
+            try: #error in html
+                screennames = re.findall(r'(?im)data-screen-name="([^" ]+?)"', html)
+                screennames = list(set(screennames))
+                name = re.findall(r'(?im),&quot;name&quot;:&quot;(.*?)&quot;,', html)[0]
+                tweets = int(re.findall(r'statuses_count&quot;:(\d+),', html)[0])
+                followers = int(re.findall(r'followers_count&quot;:(\d+),', html)[0])
+                following = int(re.findall(r'friends_count&quot;:(\d+),', html)[0])
+                favorites = int(re.findall(r'favourites_count&quot;:(\d+),', html)[0])
+            except:
+                continue
+            
             accounts[seed] = { 'name': name, 'tweets': tweets, 'followers': followers, 'following': following, 'favorites': favorites}
             print(seed, 'https://twitter.com/%s' % seed, accounts[seed])
             for screenname in screennames:
