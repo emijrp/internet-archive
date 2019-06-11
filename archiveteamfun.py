@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2018-2019 emijrp <emijrp@gmail.com>
+# Copyright (C) 2018-2019 Archive Team
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -31,6 +31,7 @@ import urllib.parse
 
 ArchivebotCache = {}
 ChromebotCache = {}
+WikiteamCache = {}
 
 def convertsize(b=0): #bytes
     if b < 1024: #<1KiB
@@ -95,7 +96,7 @@ def loadChromebotCache():
             c = pickle.load(f)
     firstcached = datetime.datetime(2019, 5, 7)
     today = datetime.datetime.today()
-    iaquery = 'https://archive.org/advancedsearch.php?q=chromebot&fl[]=identifier&sort[]=publicdate+desc&sort[]=&sort[]=&rows=50000&page=1&output=json'
+    iaquery = 'https://archive.org/advancedsearch.php?q=chromebot&fl[]=identifier&sort[]=publicdate+desc&sort[]=&sort[]=&rows=5000000&page=1&output=json'
     raw = getURL(url=iaquery, cache=False)
     json1 = json.loads(raw)
     for item in json1["response"]["docs"]:
@@ -120,6 +121,28 @@ def loadChromebotCache():
 
 def saveChromebotCache(c={}):
     with open('chromebot.cache', 'wb') as f:
+        pickle.dump(c, f)
+
+def loadWikiteamCache():
+    c = {}
+    if os.path.exists('wikiteam.cache'):
+        with open('wikiteam.cache', 'rb') as f:
+            c = pickle.load(f)
+    iaquery = 'https://archive.org/advancedsearch.php?q=collection%3Awikiteam+AND+subject%3AMediaWiki&fl[]=identifier&fl[]=originalurl&sort[]=&sort[]=&sort[]=&rows=5000000&page=1&output=json'
+    raw = getURL(url=iaquery, cache=False)
+    json1 = json.loads(raw)
+    for item in json1["response"]["docs"]:
+        if not 'originalurl' in item:
+            continue
+        itemname = item['identifier']
+        originalurl = item['originalurl']
+        #if not itemname.startswith('wiki-'):
+        #    continue
+        c[itemname] = { 'originalurl': originalurl }
+    return c.copy()
+
+def saveWikiteamCache(c={}):
+    with open('wikiteam.cache', 'wb') as f:
         pickle.dump(c, f)
 
 def getURL(url='', cache=False, retry=True):
@@ -258,12 +281,45 @@ def getArchiveDetailsChromebot(url='', singleurl=False):
                 details.append(jobdetails)
     return details, totaljobsize
 
+def getArchiveDetailsWikiteam(url='', singleurl=False):
+    global WikiteamCache
+    details = []
+    totaljobsize = 0
+    if not WikiteamCache: #empty dict
+        WikiteamCache = loadWikiteamCache()
+        saveWikiteamCache(c=WikiteamCache)
+    tool = 'WikiTeam'
+    for itemname, props in WikiteamCache.items():
+        if props['originalurl'].startswith(url):
+            #we use every file in item like a different job
+            urlfiles = 'https://archive.org/download/%s/%s_files.xml' % (itemname, itemname)
+            rawfiles = getURL(url=urlfiles, cache=True)
+            xjobs = []
+            for xfile in rawfiles.split('</file>'):
+                itemname_ = re.sub(r'(?im)^wiki-', '', itemname)
+                m = re.findall(r'(?im)<file name="((%s)-(\d{8})-(wikidump|history)\.[^ ]+?)" source="original">' % (itemname_), xfile)
+                if not m:
+                    continue
+                m = m[0]
+                domain = props['originalurl'].split('://')[1].split('/')[0]
+                jobid = m[3]
+                jobdate = '%s-%s-%s' % (m[2][0:4], m[2][4:6], m[2][6:8])
+                jobsize = int(re.findall(r'(?im)<size>(\d+)</size>', xfile)[0])
+                if jobsize < 1024:
+                    jobdetails = "| [[%s]] || %s || [https://archive.org/download/%s %s] || %s || data-sort-value=%d | {{red|%s}}" % (tool, domain, itemname, jobid, jobdate, jobsize, convertsize(b=jobsize))
+                else:
+                    jobdetails = "| [[%s]] || %s || [https://archive.org/download/%s %s] || %s || data-sort-value=%d | {{green|%s}}" % (tool, domain, itemname, jobid, jobdate, jobsize, convertsize(b=jobsize))
+                totaljobsize += jobsize
+                details.append(jobdetails)
+    return details, totaljobsize
+
 def getArchiveDetailsCore(url='', singleurl=False):
     detailsArchivebot, totaljobsizeArchivebot = getArchiveDetailsArchivebot(url=url, singleurl=singleurl)
     detailsChromebot, totaljobsizeChromebot = getArchiveDetailsChromebot(url=url, singleurl=singleurl)
+    detailsWikiteam, totaljobsizeWikiteam = getArchiveDetailsWikiteam(url=url, singleurl=singleurl)
     
-    details = detailsArchivebot + detailsChromebot
-    totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot
+    details = detailsArchivebot + detailsChromebot + detailsWikiteam
+    totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot + totaljobsizeWikiteam
     
     detailsplain = '\n|-\n'.join(details)
     return detailsplain, totaljobsize
@@ -299,6 +355,8 @@ def getArchiveDetails(url=''):
 def main():
     ChromebotCache = loadChromebotCache()
     saveChromebotCache(c=ChromebotCache)
+    WikiteamCache = loadWikiteamCache()
+    saveWikiteamCache(c=WikiteamCache)
 
 if __name__ == "__main__":
     main()
