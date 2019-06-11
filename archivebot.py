@@ -206,9 +206,9 @@ def main():
                 rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
                 rowspanplain = 'rowspan=%d | ' % (rowspan) if rowspan>1 else ''
                 if entry.label:
-                    urllabel = '[%s %s]' % (entry.url, entry.label)
+                    urllabel = '{{URLAB|1=%s|2=%s}}' % (entry.url, entry.label)
                 else:
-                    urllabel = entry.url
+                    urllabel = '{{URLAB|1=%s}}' % (entry.url)
                 if sectionhasnotes:
                     notescolumn = '%s%s || ' % (rowspanplain, entry.note if entry.note is not None else '')
                 else:
