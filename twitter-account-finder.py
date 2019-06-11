@@ -2,6 +2,7 @@
 import os
 import pickle
 import re
+import time
 import urllib.request
 
 def loadTwitterAccounts():
@@ -33,7 +34,17 @@ def main():
             headers = {}
             headers['User-Agent'] = "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:48.0) Gecko/20100101 Firefox/48.0"
             req = urllib.request.Request('https://twitter.com/%s' % (seed), headers = headers)
-            html = str(urllib.request.urlopen(req).read())
+            
+            try:
+                html = str(urllib.request.urlopen(req).read())
+            except:
+                time.sleep(10)
+                try:
+                    html = str(urllib.request.urlopen(req).read())
+                except:
+                    time.sleep(60)
+                    html = str(urllib.request.urlopen(req).read())
+            
             screennames = re.findall(r'(?im)data-screen-name="([^" ]+?)"', html)
             screennames = list(set(screennames))
             name = re.findall(r'(?im),&quot;name&quot;:&quot;(.*?)&quot;,', html)[0]
