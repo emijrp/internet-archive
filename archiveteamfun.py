@@ -125,15 +125,22 @@ def loadChromebotCache():
         if itemdate >= firstcached and itemdate <= today:
             if not itemdate.isoformat() in c:
                 c[itemdate.isoformat()] = []
+                urlitem = 'https://archive.org/download/%s' % (itemname)
+                raw2 = getURL(url=urlitem, cache=False)
                 print('Loading .json for', item, itemdate)
-                urljson = 'https://archive.org/download/%s/jobs.json' % (itemname)
-                raw2 = getURL(url=urljson, cache=False)
-                for line in raw2.splitlines():
-                    if line.startswith('{"id":'):
-                        json2 = json.loads(line)
-                        json2['item'] = itemname
-                        c[itemdate.isoformat()].append(json2)
-                        #print(c[itemdate.isoformat()][-1]['id'])
+                urljson = ''
+                if '"jobs.json"' in raw2:
+                    urljson = 'https://archive.org/download/%s/jobs.json' % (itemname)
+                elif '"jobs.json.gz"' in raw2:
+                    urljson = 'https://archive.org/download/%s/jobs.json.gz' % (itemname)
+                if urljson:
+                    raw3 = getURL(url=urljson, cache=False)
+                    for line in raw3.splitlines():
+                        if line.startswith('{"id":'):
+                            json2 = json.loads(line)
+                            json2['item'] = itemname
+                            c[itemdate.isoformat()].append(json2)
+                            #print(c[itemdate.isoformat()][-1]['id'])
     return c.copy()
 
 def saveChromebotCache():
@@ -317,10 +324,19 @@ def getArchiveDetailsChromebot(url='', singleurl=False):
             if url == job['url']:
                 domain = job['url'].split('://')[1].split('/')[0]
                 jobid = job['id'].split('-')[-1] # last chunk seems unique
-                jobdate = job['date'].split('T')[0]
-                jobsize = int(job['warcsize'])
+                jobdate = '-'
+                if 'date' in job:
+                    jobdate = job['date'].split('T')[0]
+                elif 'queued' in job:
+                    jobdate = job['queued'].split('T')[0]
+                jobsize = '-'
+                if 'warcsize' in job:
+                    jobsize = int(job['warcsize'])
+                jobobjects = '1 urls'
+                if 'urlcount' in job:
+                    jobobjects = "%s urls" % (int(job['urlcount']))
                 itemname = job['item']
-                jobdetails = genJobDetails(tool=tool, domainlink=domain, joburl="[https://archive.org/download/%s %s]" % (itemname, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="1 warc")
+                jobdetails = genJobDetails(tool=tool, domainlink=domain, joburl="[https://archive.org/download/%s %s]" % (itemname, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects=jobobjects)
                 totaljobsize += jobsize
                 details.append(jobdetails)
     return details, totaljobsize
@@ -394,7 +410,9 @@ def getArchiveDetailsYoutubearchive(url='', singleurl=False):
                     jobsize = '-'
                     jobobjects = '-'
                     if re.search(r'(?im)Downloading video (\d+) of \1$', rawytarchive3):
-                        jobobjects = "%s videos" % (re.findall(r'(?im)Downloading video (\d+) of \1$', rawytarchive3)[0])
+                        numvideos = int(re.findall(r'(?im)Downloading video (\d+) of \1$', rawytarchive3)[0])
+                        numerrors = re.findall(r'ERROR: ', rawytarchive3) and len(re.findall(r'ERROR: ', rawytarchive3)[0]) or 0
+                        jobobjects = "%s videos" % (numvideos-numerrors)
                     jobdetails = genJobDetails(tool=tool, domainlink=domain, joburl="%s" % (jobid), jobdate=jobdate, jobsize=jobsize, jobobjects=jobobjects)
                     if type(jobsize) is int:
                         totaljobsize += jobsize
@@ -402,13 +420,16 @@ def getArchiveDetailsYoutubearchive(url='', singleurl=False):
     return details, totaljobsize
 
 def getArchiveDetailsCore(url='', singleurl=False):
-    detailsArchivebot, totaljobsizeArchivebot = getArchiveDetailsArchivebot(url=url, singleurl=singleurl)
+    #detailsArchivebot, totaljobsizeArchivebot = getArchiveDetailsArchivebot(url=url, singleurl=singleurl)
     detailsChromebot, totaljobsizeChromebot = getArchiveDetailsChromebot(url=url, singleurl=singleurl)
     detailsWikiteam, totaljobsizeWikiteam = getArchiveDetailsWikiteam(url=url, singleurl=singleurl)
     detailsYoutubearchive, totaljobsizeYoutubearchive = getArchiveDetailsYoutubearchive(url=url, singleurl=singleurl)
     
-    details = detailsArchivebot + detailsChromebot + detailsWikiteam + detailsYoutubearchive
-    totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot + totaljobsizeWikiteam + totaljobsizeYoutubearchive
+    #details = detailsArchivebot + detailsChromebot + detailsWikiteam + detailsYoutubearchive
+    #totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot + totaljobsizeWikiteam + totaljobsizeYoutubearchive
+    
+    details = detailsChromebot + detailsWikiteam + detailsYoutubearchive
+    totaljobsize = totaljobsizeChromebot + totaljobsizeWikiteam + totaljobsizeYoutubearchive
     
     detailsplain = '\n|-\n'.join(details)
     return detailsplain, totaljobsize
@@ -420,26 +441,15 @@ def getArchiveDetails(url=''):
             return False, '', 0
         
         domain = url.split('://')[1].split('/')[0]
-        viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
-        raw = getURL(url=viewerurl, cache=True)
-        if raw and '</form>' in raw:
-            raw = raw.split('</form>')[1]
-        else:
-            return False, '', 0
-        if re.search(r'No search results', raw):
-            return False, '', 0
-        else:
-            if len(url.split(domain)[1]) > 1: #url is domain.ext/more
-                details, totaljobsize = getArchiveDetailsCore(url=url, singleurl=True)
-                return details and True or False, details, totaljobsize
-            elif domain.lower() in raw.lower(): #url is domain.ext
-                details, totaljobsize = getArchiveDetailsCore(url=url)
-                return True, details, totaljobsize
-            else:
-                details, totaljobsize = getArchiveDetailsCore(url=url)
-                return False, details, totaljobsize
-    else:
-        return False, '', 0
+        if len(url.split(domain)[1]) > 1: #url is domain.ext/more
+            details, totaljobsize = getArchiveDetailsCore(url=url, singleurl=True)
+            return details and True or False, details, totaljobsize
+        
+        #url is domain.ext
+        details, totaljobsize = getArchiveDetailsCore(url=url)
+        return details and True or False, details, totaljobsize
+    
+    return False, '', 0
 
 def main():
     global ChromebotCache
