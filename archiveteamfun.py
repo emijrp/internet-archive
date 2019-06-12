@@ -32,8 +32,13 @@ import urllib.parse
 
 ArchivebotCache = {}
 ChromebotCache = {}
+NarabotCache = {}
 WikiteamCache = {}
 YoutubearchiveCache = {}
+
+# Ideas:
+# Mirrortube (no channel info in metadata :()
+# Videobot
 
 def convertsize(b=0): #bytes
     if type(b) is int:
@@ -147,6 +152,29 @@ def saveChromebotCache():
     global ChromebotCache
     with open('chromebot.cache', 'wb') as f:
         pickle.dump(ChromebotCache, f)
+
+def loadNarabotCache():
+    c = {}
+    if os.path.exists('narabot.cache'):
+        with open('narabot.cache', 'rb') as f:
+            c = pickle.load(f)
+    iaquery = 'https://archive.org/advancedsearch.php?q=collection%3Agithub_narabot_mirror&fl[]=identifier&fl[]=originalurl&sort[]=&sort[]=&sort[]=&rows=5000000&page=1&output=json'
+    raw = getURL(url=iaquery, cache=False)
+    json1 = json.loads(raw)
+    for item in json1["response"]["docs"]:
+        if not 'originalurl' in item:
+            continue
+        itemname = item['identifier']
+        originalurl = item['originalurl']
+        if type(originalurl) is list:
+            originalurl = originalurl[0]
+        c[itemname] = { 'originalurl': originalurl }
+    return c.copy()
+
+def saveNarabotCache():
+    global NarabotCache
+    with open('narabot.cache', 'wb') as f:
+        pickle.dump(NarabotCache, f)
 
 def loadWikiteamCache():
     c = {}
@@ -341,6 +369,27 @@ def getArchiveDetailsChromebot(url='', singleurl=False):
                 details.append(jobdetails)
     return details, totaljobsize
 
+def getArchiveDetailsNarabot(url='', singleurl=False):
+    global NarabotCache
+    details = []
+    totaljobsize = 0
+    if not NarabotCache: #empty dict
+        NarabotCache = loadNarabotCache()
+        saveNarabotCache()
+    tool = '[[Narabot]]'
+    for itemname, props in NarabotCache.items():
+        if props['originalurl'].strip('/').startswith(url.strip('/')):
+            domain = props['originalurl'].split('://')[1].split('/')[0]
+            urlfiles = 'https://archive.org/download/%s/%s_files.xml' % (itemname, itemname)
+            rawfiles = getURL(url=urlfiles, cache=True)
+            jobid = 'job'
+            jobdate = itemname.split('_-_')[1].split('_')[0]
+            jobsize = sum([int(x) for x in re.findall(r'(?im)<size>(\d+)</size>', rawfiles)])
+            jobdetails = genJobDetails(tool=tool, domainlink=domain, joburl="[https://archive.org/download/%s %s]" % (itemname, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="1 repo")
+            totaljobsize += jobsize
+            details.append(jobdetails)
+    return details, totaljobsize
+
 def getArchiveDetailsWikiteam(url='', singleurl=False):
     global WikiteamCache
     details = []
@@ -420,16 +469,14 @@ def getArchiveDetailsYoutubearchive(url='', singleurl=False):
     return details, totaljobsize
 
 def getArchiveDetailsCore(url='', singleurl=False):
-    #detailsArchivebot, totaljobsizeArchivebot = getArchiveDetailsArchivebot(url=url, singleurl=singleurl)
+    detailsArchivebot, totaljobsizeArchivebot = getArchiveDetailsArchivebot(url=url, singleurl=singleurl)
     detailsChromebot, totaljobsizeChromebot = getArchiveDetailsChromebot(url=url, singleurl=singleurl)
+    detailsNarabot, totaljobsizeNarabot = getArchiveDetailsNarabot(url=url, singleurl=singleurl)
     detailsWikiteam, totaljobsizeWikiteam = getArchiveDetailsWikiteam(url=url, singleurl=singleurl)
     detailsYoutubearchive, totaljobsizeYoutubearchive = getArchiveDetailsYoutubearchive(url=url, singleurl=singleurl)
     
-    #details = detailsArchivebot + detailsChromebot + detailsWikiteam + detailsYoutubearchive
-    #totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot + totaljobsizeWikiteam + totaljobsizeYoutubearchive
-    
-    details = detailsChromebot + detailsWikiteam + detailsYoutubearchive
-    totaljobsize = totaljobsizeChromebot + totaljobsizeWikiteam + totaljobsizeYoutubearchive
+    details = detailsArchivebot + detailsChromebot + detailsNarabot + detailsWikiteam + detailsYoutubearchive
+    totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot + totaljobsizeNarabot + totaljobsizeWikiteam + totaljobsizeYoutubearchive
     
     detailsplain = '\n|-\n'.join(details)
     return detailsplain, totaljobsize
@@ -450,14 +497,3 @@ def getArchiveDetails(url=''):
         return details and True or False, details, totaljobsize
     
     return False, '', 0
-
-def main():
-    global ChromebotCache
-    global WikiteamCache
-    ChromebotCache = loadChromebotCache()
-    saveChromebotCache()
-    WikiteamCache = loadWikiteamCache()
-    saveWikiteamCache()
-
-if __name__ == "__main__":
-    main()
