@@ -213,7 +213,7 @@ def main():
                     notescolumn = '%s%s || ' % (rowspanplain, entry.note if entry.note is not None else '')
                 else:
                     notescolumn = ''
-                rowsplain += "\n|-\n| %s%s || %s%s%s\n%s " % (rowspanplain, urllabel, notescolumn, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  ||  || ')
+                rowsplain += "\n|-\n| %s%s || %s%s%s\n%s " % (rowspanplain, urllabel, notescolumn, rowspanplain, viewerplain, viewerdetailsplain if viewerdetailsplain else '|  ||  ||  ||  ||  || ')
                 c += 1
 
             totaljobsize += sectionjobsize
@@ -228,9 +228,9 @@ def main():
 Do not edit this table, it is automatically updated by bot. There is a [[{{FULLPAGENAME}}/list|raw list]] of URLs that you can edit.
 
 {| class="wikitable sortable plainlinks"
-! rowspan=2 | Website !! %srowspan=2 | Status !! colspan=5 | Archive details
+! rowspan=2 | Website !! %srowspan=2 | Status !! colspan=6 | Archive details
 |-
-! Tool !! Domain !! Job !! Date !! Size %s
+! Tool !! Domain !! Job !! Date !! Size !! Objects %s
 |}
 """ % (sectionsaved, sectionnotsaved, convertsize(b=sectionjobsize), notesheader, rowsplain)
             newtext.append(output)
