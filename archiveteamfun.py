@@ -39,6 +39,15 @@ YoutubearchiveCache = {}
 # Ideas:
 # Mirrortube (no channel info in metadata :()
 # Videobot
+#
+# Fix:
+# https://archiveteam.org/index.php?title=ArchiveBot/2018_Brazilian_general_elections (portal.imprensanacional.gov.br no json = no saved?)
+#
+# Error no json:
+"""Retry in 20 seconds...
+Retrieving: https://archive.fart.website/archivebot/viewer/?q=https://transfer.notkiska.pw/kqFhq/twitter-@mattiastesfaye  
+Retrieving: https://archive.org/download/archiveteam_archivebot_go_20190514190001/urls-transfer.notkiska.pw-berries.space-accounts-09-May-2019-inf-20190511-012325-8grwh.json
+"""
 
 def convertsize(b=0): #bytes
     if type(b) is int:
@@ -99,8 +108,8 @@ def cleanArchiveBotCache():
         #we need to check wether problems were solved in the next run
         if url.startswith("https://archive.fart.website/archivebot/viewer/job/"):
             job = url.split("https://archive.fart.website/archivebot/viewer/job/")[1]
-            jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', raw)
-            if not jsonfiles and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), raw): #job in progress
+            jsonfileurls = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', raw)
+            if not jsonfileurls and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), raw): #job in progress
                 removeFromArchivebotCache(url=url, save=False)
             warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (job), raw)
             if not warcs and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), raw): #job in progress
@@ -304,15 +313,12 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
         for jobid in jobs[:jobslimit]: 
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + jobid
             rawjob = getURL(url=urljob, cache=True)
-            jsonfiles = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
-            for jsonfile in jsonfiles:
+            jsonfileurls = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
+            for jsonfileurl in jsonfileurls:
                 if singleurl:
-                    if jsonfile:
-                        jsonurl = jsonfile
-                        jsonraw = getURL(url=jsonurl, cache=True) #cache json from internet archive
-                        if not url in jsonraw:
-                            continue
-                    else:
+                    jsonraw = getURL(url=jsonfileurl, cache=True) #cache json from internet archive
+                    jsonfileloaded = json.loads(jsonraw)
+                    if not 'url' in jsonfileloaded or ('url' in jsonfileloaded and jsonfileloaded['url'] != url):
                         continue
                 
                 jobproblem = False
@@ -324,8 +330,9 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                     jobdatetimes.append("%s-%s" % (warc[0], warc[1]))
                 jobdatetimes = list(set(jobdatetimes))
                 for jobdatetime in jobdatetimes:
-                    if not jobdatetime in jsonfile:
+                    if not jobdatetime in jsonfileurl:
                         continue
+                    warcsnometa = len(re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s-?\d*\.warc\.gz\s*</a>" % (jobid), rawjob))
                     jobaborted = False
                     if ('%s-%s-aborted-' % (jobdatetime, jobid)) in rawjob or ('%s-%s-aborted.json' % (jobdatetime, jobid)) in rawjob:
                         jobaborted = True
@@ -333,7 +340,7 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                     jobsize = sum([jobdatetime == '%s-%s' % (warc[0], warc[1]) and int(warc[2]) or 0 for warc in warcs])
                     if jobdate and jobdate != 'nodate':
                         jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
-                    jobdetails = genJobDetails(tool=tool, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobid, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % len(warcs))
+                    jobdetails = genJobDetails(tool=tool, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobid, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa))
                     totaljobsize += jobsize
                     details.append(jobdetails)
     return details, totaljobsize
@@ -349,8 +356,8 @@ def getArchiveDetailsChromebot(url='', singleurl=False):
     tool = '[[Chromebot]]'
     for date, jobs in ChromebotCache.items():
         for job in jobs:
-            if url == job['url']:
-                domain = job['url'].split('://')[1].split('/')[0]
+            if job['url'] == url or ('urlseed' in job and job['urlseed'] == url):
+                domain = url.split('://')[1].split('/')[0]
                 jobid = job['id'].split('-')[-1] # last chunk seems unique
                 jobdate = '-'
                 if 'date' in job:
@@ -493,7 +500,7 @@ def getArchiveDetails(url=''):
             return details and True or False, details, totaljobsize
         
         #url is domain.ext
-        details, totaljobsize = getArchiveDetailsCore(url=url)
+        details, totaljobsize = getArchiveDetailsCore(url=url, singleurl=False)
         return details and True or False, details, totaljobsize
     
     return False, '', 0
