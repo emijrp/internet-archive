@@ -322,17 +322,21 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                         continue
                 
                 jobproblem = False
-                warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (jobid), rawjob)
+                warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (jobid), rawjob)
                 if not warcs:
                     jobproblem = True
                 jobdatetimes = []
                 for warc in warcs:
-                    jobdatetimes.append("%s-%s" % (warc[0], warc[1]))
+                    jobdatetimes.append("%s-%s" % (warc[1], warc[2]))
                 jobdatetimes = list(set(jobdatetimes))
+                jobdatetimes.sort()
                 for jobdatetime in jobdatetimes:
                     if not jobdatetime in jsonfileurl:
                         continue
-                    warcsnometa = len(re.findall(r"(?im)>\s*[^<>\"]+?-(\d{8})-(\d{6})-%s-?\d*\.warc\.gz\s*</a>" % (jobid), rawjob))
+                    warcsnometa = len(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-(\d{8})-(\d{6})-%s-?\d*\.warc\.gz\s*</a>" % (jobid), rawjob))
+                    inforshallow = list(set(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-\d{8}-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>" % (jobid), rawjob)))
+                    inforshallow = len(inforshallow) == 1 and inforshallow or 'unknown'
+                    tool = "%s%s" % (tool, inforshallow == 'unknown' and '' or "&nbsp;(!%s)" % (inforshallow == 'inf' and 'a' or 'ao'))
                     jobaborted = False
                     if ('%s-%s-aborted-' % (jobdatetime, jobid)) in rawjob or ('%s-%s-aborted.json' % (jobdatetime, jobid)) in rawjob:
                         jobaborted = True
