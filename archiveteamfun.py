@@ -219,6 +219,9 @@ def saveYoutubearchiveCache():
 def getURL(url='', cache=False, retry=True):
     global ArchivebotCache
     
+    if '8grwh' in url: #deleted jobs/jsons
+        return ''
+    
     if cache: #do not download if it is cached
         if not ArchivebotCache: #empty dict
             ArchivebotCache = loadArchivebotCache()
@@ -242,6 +245,9 @@ def getURL(url='', cache=False, retry=True):
             if not random.randint(0, 100):
                 saveArchivebotCache()
     except:
+        if url.endswith('.json'): #some .json are deleted on IA
+            return ''
+        
         sleep = 10 # seconds
         maxsleep = 30
         while retry and sleep <= maxsleep:
@@ -310,14 +316,17 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
         rawjobs = getURL(url=urljobs, cache=True)
         jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
-        for jobid in jobs[:jobslimit]: 
+        for jobid in jobs[:jobslimit]:
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + jobid
             rawjob = getURL(url=urljob, cache=True)
             jsonfileurls = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
             for jsonfileurl in jsonfileurls:
                 if singleurl:
                     jsonraw = getURL(url=jsonfileurl, cache=True) #cache json from internet archive
-                    jsonfileloaded = json.loads(jsonraw)
+                    try:
+                        jsonfileloaded = json.loads(jsonraw)
+                    except:
+                        continue
                     if not 'url' in jsonfileloaded or ('url' in jsonfileloaded and jsonfileloaded['url'] != url):
                         continue
                 
@@ -335,16 +344,16 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                         continue
                     warcsnometa = len(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-(\d{8})-(\d{6})-%s-?\d*\.warc\.gz\s*</a>" % (jobid), rawjob))
                     inforshallow = list(set(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-\d{8}-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>" % (jobid), rawjob)))
-                    inforshallow = len(inforshallow) == 1 and inforshallow or 'unknown'
-                    tool = "%s%s" % (tool, inforshallow == 'unknown' and '' or "&nbsp;(!%s)" % (inforshallow == 'inf' and 'a' or 'ao'))
+                    inforshallow = len(inforshallow) == 1 and inforshallow[0] or 'unknown'
+                    toolb = "%s%s" % (tool, inforshallow == 'unknown' and '' or "&nbsp;(!%s)" % (inforshallow == 'inf' and 'a' or 'ao'))
                     jobaborted = False
                     if ('%s-%s-aborted-' % (jobdatetime, jobid)) in rawjob or ('%s-%s-aborted.json' % (jobdatetime, jobid)) in rawjob:
                         jobaborted = True
                     jobdate = '-' in jobdatetime and jobdatetime.split('-')[0] or 'nodate'
-                    jobsize = sum([jobdatetime == '%s-%s' % (warc[0], warc[1]) and int(warc[2]) or 0 for warc in warcs])
+                    jobsize = sum([jobdatetime == '%s-%s' % (warc[1], warc[2]) and int(warc[3]) or 0 for warc in warcs])
                     if jobdate and jobdate != 'nodate':
                         jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
-                    jobdetails = genJobDetails(tool=tool, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobid, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa))
+                    jobdetails = genJobDetails(tool=toolb, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobid, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa))
                     totaljobsize += jobsize
                     details.append(jobdetails)
     return details, totaljobsize
@@ -489,6 +498,7 @@ def getArchiveDetailsCore(url='', singleurl=False):
     details = detailsArchivebot + detailsChromebot + detailsNarabot + detailsWikiteam + detailsYoutubearchive
     totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot + totaljobsizeNarabot + totaljobsizeWikiteam + totaljobsizeYoutubearchive
     
+    details.sort()
     detailsplain = '\n|-\n'.join(details)
     return detailsplain, totaljobsize
 
