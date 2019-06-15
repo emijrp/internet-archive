@@ -162,9 +162,9 @@ def main():
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
 {| class="wikitable sortable plainlinks"
-! rowspan=2 | Title !! rowspan=2 | Topic !! rowspan=2 | Description !! rowspan=2 | Website !! rowspan=2 width=100px | Status !! colspan=5 | Archive details
+! rowspan=2 | Title !! rowspan=2 | Topic !! rowspan=2 | Description !! rowspan=2 | Website !! rowspan=2 width=100px | Status !! colspan=6 | Archive details
 |-
-! Tool !! Domain !! Job !! Date !! Size %s
+! Tool !! Domain !! Job !! Date !! Size !! Objects %s
 |}
 
 {{Deathwatch}}
