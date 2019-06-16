@@ -342,7 +342,7 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                 for jobdatetime in jobdatetimes:
                     if not jobdatetime in jsonfileurl:
                         continue
-                    warcsnometa = len(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-(\d{8})-(\d{6})-%s-?\d*\.warc\.gz\s*</a>" % (jobid), rawjob))
+                    warcsnometa = len(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-(\d{8})-(\d{6})-%s-[^<> ]*?\d+\.warc\.gz\s*</a>" % (jobid), rawjob))
                     inforshallow = list(set(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-\d{8}-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>" % (jobid), rawjob)))
                     inforshallow = len(inforshallow) == 1 and inforshallow[0] or 'unknown'
                     toolb = "%s%s" % (tool, inforshallow == 'unknown' and '' or "&nbsp;(!%s)" % (inforshallow == 'inf' and 'a' or 'ao'))
@@ -353,7 +353,7 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                     jobsize = sum([jobdatetime == '%s-%s' % (warc[1], warc[2]) and int(warc[3]) or 0 for warc in warcs])
                     if jobdate and jobdate != 'nodate':
                         jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
-                    jobdetails = genJobDetails(tool=toolb, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobid, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa))
+                    jobdetails = genJobDetails(tool=toolb, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobid, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa), jobaborted=jobaborted, jobproblem=jobproblem)
                     totaljobsize += jobsize
                     details.append(jobdetails)
     return details, totaljobsize
