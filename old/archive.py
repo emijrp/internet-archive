@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import random
 import re
 import sys
 import time
@@ -95,6 +96,7 @@ def stats(statuses=[]):
 
 def main():
     urls = []
+    shuffle = False
     filename = sys.argv[1]
     with open(filename, 'r') as f:
         urls = f.readlines()
@@ -103,7 +105,11 @@ def main():
     if len(sys.argv) > 2:
         if 'force' in sys.argv[2:]:
             force = True
+        if 'shuffle' in sys.argv[2:]:
+            shuffle = True
     
+    if shuffle:
+        random.shuffle(urls)
     statuses = []
     for url in urls:
         status = archiveurl(url, force=force)
