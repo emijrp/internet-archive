@@ -99,7 +99,10 @@ def main():
     shuffle = False
     filename = sys.argv[1]
     with open(filename, 'r') as f:
-        urls = f.readlines()
+        urls2 = f.read().strip().splitlines()
+        for url in urls2:
+            if not url in urls:
+                urls.append(url)
     
     force = False
     if len(sys.argv) > 2:
