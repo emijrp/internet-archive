@@ -64,14 +64,25 @@ def archiveurl(url='', force=False):
             #print('Archiving URL',url)
             prefix2 = 'https://web.archive.org/save/'
             saveurl = prefix2 + url
+            error = False
             try:
+                time.sleep(2)
                 f = urllib.request.urlopen(saveurl)
                 raw = f.read().decode('utf-8')
-                print('Archived at https://web.archive.org/web/*/%s' % (url))
-                return 'ok'
             except:
+                print('Waiting...')
+                time.sleep(30)
+                try:
+                    f = urllib.request.urlopen(saveurl)
+                    raw = f.read().decode('utf-8')
+                except:
+                    error = True
+            if error:
                 print('URL 404 archived at https://web.archive.org/web/*/%s' % (url))
                 return '404'
+            else:
+                print('Archived at https://web.archive.org/web/*/%s' % (url))
+                return 'ok'
         else:
             print('Previously archived at https://web.archive.org/web/*/%s' % (url))
             return 'previously'
