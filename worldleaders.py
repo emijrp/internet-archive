@@ -130,7 +130,8 @@ Do not edit this page, it is automatically updated by bot. There are raw lists f
 %s
 |}
 
-[[Category:Archive Team]]""" % (rowsplain)
+[[Category:Archive Team]]
+[[Category:Lists]]""" % (rowsplain)
     print(output)
     
     atpage = pywikibot.Page(atsite, "List of current heads of state and government")
