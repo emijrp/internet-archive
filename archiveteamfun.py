@@ -115,7 +115,7 @@ def cleanArchiveBotCache():
             if not warcs and re.search(r'-%s\d{4}-\d{6}-' % (datetime.datetime.today().year), raw): #job in progress
                 removeFromArchivebotCache(url=url, save=False)
         
-        if 'borg.xyz:82/logs/' in url and not '.log' in url:
+        if 'borg.xyz/logs/' in url and not '.log' in url:
             removeFromArchivebotCache(url=url, save=False)
         
     saveArchivebotCache()
@@ -462,16 +462,16 @@ def getArchiveDetailsYoutubearchive(url='', singleurl=False):
     if re.search(r'https://www\.youtube\.com/(channel|user)/[^/]+', url):
         domain = url.split('://')[1].split('/')[0]
         channelid = url.split('/')[4].split('/')[0]
-        urlytarchive = 'http://borg.xyz:82/logs/dl/?C=M;O=D'
+        urlytarchive = 'https://ya.borg.xyz/logs/dl/?C=M;O=D'
         rawytarchive = getURL(url=urlytarchive, cache=True)
         channels = re.findall(r'(?im)<a href="([^/]+)/">', rawytarchive)
         if channelid in channels:
-            urlytarchive2 = 'http://borg.xyz:82/logs/dl/%s/?C=M;O=D' % (channelid)
+            urlytarchive2 = 'https://ya.borg.xyz/logs/dl/%s/?C=M;O=D' % (channelid)
             rawytarchive2 = getURL(url=urlytarchive2, cache=True)
             logs = re.findall(r'(?im)<a href="([^<>]*?\.log[^<>]*?)">', rawytarchive2)
             if logs:
                 logfilename = logs[0]
-                urlytarchive3 = 'http://borg.xyz:82/logs/dl/%s/%s' % (channelid, logfilename)
+                urlytarchive3 = 'https://ya.borg.xyz/logs/dl/%s/%s' % (channelid, logfilename)
                 rawytarchive3 = getURL(url=urlytarchive3, cache=True)
                 if re.search(r'Finished downloading playlist', rawytarchive3):
                     jobid = '-'
