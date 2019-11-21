@@ -36,19 +36,22 @@ def getURL(url=''):
                 pass
     except:
         sleep = 10 # seconds
-        maxsleep = 100
+        maxsleep = 30
         while sleep <= maxsleep:
             print('Error while retrieving: %s' % (url))
             print('Retry in %s seconds...' % (sleep))
             time.sleep(sleep)
-            raw = urllib.request.urlopen(req).read()
             try:
-                raw = raw.strip().decode('utf-8')
-            except:
+                raw = urllib.request.urlopen(req).read()
                 try:
-                    raw = raw.strip().decode('latin-1')
+                    raw = raw.strip().decode('utf-8')
                 except:
-                    pass
+                    try:
+                        raw = raw.strip().decode('latin-1')
+                    except:
+                        pass
+            except:
+                pass
             sleep = sleep * 2
     return raw
 
