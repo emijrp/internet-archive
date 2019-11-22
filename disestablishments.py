@@ -153,7 +153,8 @@ def main():
             totaljobsize += viewer[0][2]
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
-            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s%s || %s%s || %s%s\n%s " % (rowspanplain, q, wtitle, rowspanplain, p31, rowspanplain, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', rowspanplain, websites and '<br/>'.join(websites) or '-', rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  || ')
+            #rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s%s || %s%s || %s%s\n%s " % (rowspanplain, q, wtitle, rowspanplain, p31, rowspanplain, intro, cats and "<br/><small>''%s''</small>" % (', '.join(cats)) or '', rowspanplain, websites and '<br/>'.join(websites) or '-', rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  ||  || ')
+            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, wtitle, rowspanplain, p31, rowspanplain, websites and '<br/>'.join(websites) or '-', rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  ||  || ')
             c += 1
         output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s disestablishments|Category:%s disestablishments]]'''. The websites for these entities could vanish in the foreseable future.
 
@@ -161,8 +162,8 @@ def main():
 
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
-{| class="wikitable sortable plainlinks"
-! rowspan=2 | Title !! rowspan=2 | Topic !! rowspan=2 | Description !! rowspan=2 | Website !! rowspan=2 width=100px | Status !! colspan=6 | Archive details
+{| class="wikitable sortable plainlinks" style="font-size: 85%%;"
+! rowspan=2 | Title !! rowspan=2 | Topic !! rowspan=2 | Website !! rowspan=2 width=100px | Status !! colspan=6 | Archive details
 |-
 ! Tool !! Domain !! Job !! Date !! Size !! Objects %s
 |}
