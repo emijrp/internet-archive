@@ -36,34 +36,98 @@ def main():
                 { ?item wdt:P4003 ?facebook. } UNION { ?item wdt:P2013 ?facebook. }
             }
             ORDER BY ?facebook
-            """,
+            """, 
+        "twitter":
+            """
+            SELECT DISTINCT ?item ?twitter
+            WHERE {
+                ?item wdt:P2002 ?twitter.
+            }
+            ORDER BY ?twitter
+            """, 
+        "youtube":
+            """
+            SELECT DISTINCT ?item ?youtube
+            WHERE {
+                ?item wdt:P2397 ?youtube.
+            }
+            ORDER BY ?youtube
+            """, 
+        "youtube-expanded":
+            """
+            SELECT DISTINCT ?item ?youtube
+            WHERE {
+                ?item wdt:P2397 ?youtube.
+            }
+            ORDER BY ?youtube
+            """, 
     }
     queryname = ''
     if len(sys.argv) > 1:
         queryname = sys.argv[1].lower()
     if queryname in queries.keys():
-        url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=%s' % (urllib.parse.quote(queries[queryname]))
-        url = '%s&format=json' % (url)
-        sparql = getURL(url=url)
+        queryurl = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=%s' % (urllib.parse.quote(queries[queryname]))
+        queryurl = '%s&format=json' % (queryurl)
+        sparql = getURL(url=queryurl)
         json1 = loadSPARQL(sparql=sparql)
         
-        qurls = []
+        c = 0
+        urls = []
         for result in json1['results']['bindings']:
             q = 'item' in result and result['item']['value'].split('/entity/')[1] or ''
             if not q:
                 continue
             qurl = ''
-            
+            qurls = []
             if queryname == "facebook":
                 qparam = 'facebook' in result and result['facebook']['value'] or ''
-                if not re.search(r'(?m)^t\d+$', qparam):
+                if not re.search(r'(?m)^t\d{7,}$', qparam):
                     qurl = 'https://www.facebook.com/' + qparam
+            elif queryname == "twitter":
+                qparam = 'twitter' in result and result['twitter']['value'] or ''
+                if not re.search(r'(?m)^t\d{7,}$', qparam):
+                    qurl = 'https://twitter.com/' + qparam
+            elif queryname == "youtube":
+                qparam = 'youtube' in result and result['youtube']['value'] or ''
+                if not re.search(r'(?m)^t\d{7,}$', qparam):
+                    qurl = 'https://www.youtube.com/channel/' + qparam
+            elif queryname == "youtube-expanded":
+                qparam = 'youtube' in result and result['youtube']['value'] or ''
+                if not re.search(r'(?m)^t\d{7,}$', qparam):
+                    qurl = 'https://www.youtube.com/channel/' + qparam
+                    qurls = [
+                        'https://youtube.com/channel/' + qparam, 
+                        'https://www.youtube.com/channel/' + qparam + '?disable_polymer=1', 
+                        'https://www.youtube.com/channel/' + qparam + '/', 
+                        'https://www.youtube.com/channel/' + qparam + '/?disable_polymer=1', 
+                        'https://www.youtube.com/channel/' + qparam + '/feed', 
+                        'https://www.youtube.com/channel/' + qparam + '/feed?activity_view=1', 
+                        'https://www.youtube.com/channel/' + qparam + '/feed?activity_view=2', 
+                        'https://www.youtube.com/channel/' + qparam + '/feed?activity_view=3', 
+                        'https://www.youtube.com/channel/' + qparam + '/feed?activity_view=4', 
+                        'https://www.youtube.com/channel/' + qparam + '/feed?activity_view=5', 
+                        'https://www.youtube.com/channel/' + qparam + '/feed?activity_view=6', 
+                        'https://www.youtube.com/channel/' + qparam + '/feed?activity_view=7', 
+                        'https://www.youtube.com/channel/' + qparam + '/videos', 
+                        'https://www.youtube.com/channel/' + qparam + '/videos?disable_polymer=1', 
+                        'https://www.youtube.com/channel/' + qparam + '/videos?view=0&flow=grid', 
+                        'https://www.youtube.com/channel/' + qparam + '/videos?view=0&sort=da&flow=grid', 
+                        'https://www.youtube.com/channel/' + qparam + '/videos?view=0&sort=dd&flow=grid', 
+                        'https://www.youtube.com/channel/' + qparam + '/playlists', 
+                        'https://www.youtube.com/channel/' + qparam + '/channels', 
+                        'https://www.youtube.com/channel/' + qparam + '/community', 
+                        'https://www.youtube.com/channel/' + qparam + '/discussion', 
+                        'https://www.youtube.com/channel/' + qparam + '/about', 
+                    ]
             
             if qurl:
-                qurls.append(qurl)
-        outfilename = 'wikidata-%s-%s-%.0dk' % (queryname, datetime.datetime.utcnow().strftime('%Y%m%d'), len(qurls)/1000)
+                urls.append(qurl)
+                c += 1
+            if qurls:
+                [urls.append(x) for x in qurls]
+        outfilename = 'wikidata-%s-%s-%.0dk' % (queryname, datetime.datetime.utcnow().strftime('%Y%m%d'), c/1000)
         with open(outfilename, 'w') as f:
-            f.write('\n'.join(qurls))
+            f.write('\n'.join(urls))
         print('Saved in', outfilename)
     else:
         print("Choose a query:", ', '.join(queries.keys()))
