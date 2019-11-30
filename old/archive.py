@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2016-2017 emijrp <emijrp@gmail.com>
+# Copyright (C) 2016-2019 emijrp <emijrp@gmail.com>
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -95,7 +95,7 @@ def archivevideoytdl(url='', filename=''):
     if url and filename:
         os.system('python youtube-dl %s -o %s --write-description --write-info-json --write-thumbnail' % (url, filename))
 
-def stats(statuses=[]):
+def stats(statuses=[], filename=''):
     ok = 0
     e404 = 0
     previously = 0
@@ -106,7 +106,7 @@ def stats(statuses=[]):
             e404 += 1
         elif status == 'previously':
             previously += 1
-    print('ok=%d, e404=%d, previously=%d' % (ok, e404, previously))
+    print('ok=%d, e404=%d, previously=%d, filename=%s' % (ok, e404, previously, filename))
 
 def main():
     urls = []
@@ -131,7 +131,7 @@ def main():
     for url in urls:
         status = archiveurl(url, force=force)
         statuses.append(status)
-    stats(statuses=statuses)
+    stats(statuses=statuses, filename=filename)
         
 if __name__ == '__main__':
     main()
