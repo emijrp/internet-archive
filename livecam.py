@@ -65,6 +65,13 @@ def main():
     commontags = ["youtube", "live cam", "live", "cam", "video", year, yearmonth, today_]
     
     livecams = {
+        'coronavirus-roylab-stats': {
+            'originalurl': 'https://www.youtube.com/watch?v=qgylp3Td1Bw', 
+            'licenseurl': '', 
+            'tags': ["coronavirus", "covid19", "world", "map", "news", "counter", "real time", "roylab stats"], 
+            'source': 'https://www.youtube.com/channel/UCDGiCfCZIV5phsoGiPwIcyQ', 
+            'uploader': 'Roylab Stats', 
+        }, 
         'argentina1': {
             'originalurl': 'https://www.youtube.com/watch?v=if91GyWP3zQ', 
             'licenseurl': '', 
@@ -141,6 +148,13 @@ def main():
             'tags': ["Tokyo", "Japan", "Tokyo Tower"], 
             'source': 'https://www.youtube.com/channel/UCKyXyJMijwyBebgI9wmzFcw', 
             'uploader': '東京タワーライブカメラ', 
+        }, 
+        'newzealand1': {
+            'originalurl': 'https://www.youtube.com/watch?v=t9XNKQY4tQc', 
+            'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
+            'tags': ["Pukekura", "Taiaroa Head", "New Zealand", "Royal Albatross", "Cornell Lab"], 
+            'source': 'https://www.youtube.com/channel/UCNXXjM3fkppSxEQIwBloIvA', 
+            'uploader': 'Department of Conservation', 
         }, 
         'southafrica1': {
             'originalurl': 'https://www.youtube.com/watch?v=ObCoEm0o94A', 
