@@ -184,6 +184,13 @@ def main():
             'source': 'https://www.youtube.com/channel/UCUNkMfIrFuCJDzuEsezgr5g', 
             'uploader': 'Reus_cat', 
         }, 
+        'spain4': {
+            'originalurl': 'https://www.youtube.com/watch?v=ZPqr4pvDspg', 
+            'licenseurl': '', 
+            'tags': ["Spain", "Madrid", "Puerta del Sol"], 
+            'source': 'https://www.youtube.com/channel/UCnsvJeZO4RigQ898WdDNoBw', 
+            'uploader': 'EL PAIS', 
+        }, 
         'sweden1': {
             'originalurl': 'https://www.youtube.com/watch?v=EHH1SQDmqg4', 
             'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
