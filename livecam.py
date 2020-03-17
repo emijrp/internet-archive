@@ -63,6 +63,7 @@ def main():
     yearmonth = now.strftime("%Y-%m")
     todayandhour = now.strftime("%Y%m%d-%H0000")
     commontags = ["youtube", "live cam", "live", "cam", "video", year, yearmonth, today_]
+    coronatags = ["coronavirus", "covid19"]
     
     livecams = {
         'coronavirus-roylab-stats': {
@@ -75,7 +76,7 @@ def main():
         'argentina1': {
             'originalurl': 'https://www.youtube.com/watch?v=if91GyWP3zQ', 
             'licenseurl': '', 
-            'tags': ["Buenos Aires", "Argentina", "obelisco", "obelisk"], 
+            'tags': ["Buenos Aires", "Argentina", "obelisco", "obelisk"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UCCkRwmztPEvut3gpsgmCmzw', 
             'uploader': 'FourSeasons BuenosAires', 
         }, 
@@ -94,7 +95,7 @@ def main():
             'uploader': 'Ministerio de Medio Ambiente y Recursos Naturales', 
         }, 
         'finland1': {
-            'originalurl': 'https://www.youtube.com/watch?v=ODIuPjfhpWo', 
+            'originalurl': 'https://www.youtube.com/watch?v=o45aDp57IM8', 
             'licenseurl': '',  
             'tags': ["Finland", "Larukite kelikamera", "Larukite"], 
             'source': 'https://www.youtube.com/channel/UCJmadTJ58HxfuPMgDm6rtrg', 
@@ -110,35 +111,35 @@ def main():
         'italy1': {
             'originalurl': 'https://www.youtube.com/watch?v=eE6VVJ3hvv8', 
             'licenseurl': '', 
-            'tags': ["Venice", "Italy", "St. Mark's Basin"], 
+            'tags': ["Venice", "Italy", "St. Mark's Basin"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
             'uploader': 'I Love You Venice', 
         }, 
         'italy2': {
             'originalurl': 'https://www.youtube.com/watch?v=BPXtn15_9qo', 
             'licenseurl': '', 
-            'tags': ["Venice", "Italy", "Rialto Bridge"], 
+            'tags': ["Venice", "Italy", "Rialto Bridge"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
             'uploader': 'I Love You Venice', 
         }, 
         'italy3': {
             'originalurl': 'https://www.youtube.com/watch?v=cjCmsRjxVL0', 
             'licenseurl': '', 
-            'tags': ["Venice", "Italy", "Grand Canal"], 
+            'tags': ["Venice", "Italy", "Grand Canal"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UCMpn1qLudF-zb4M4bqxLIbw', 
             'uploader': 'I Love You Venice', 
         }, 
         'italy4': {
             'originalurl': 'https://www.youtube.com/watch?v=5ka3YhVZgME', 
             'licenseurl': '', 
-            'tags': ["Italy", "Piazza San Francesco", "Assisi", "Perugia", "Umbria"], 
+            'tags': ["Italy", "Piazza San Francesco", "Assisi", "Perugia", "Umbria"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UC_FuR9GFVJE2A8H02sQmHWw', 
             'uploader': 'Umbria Webcam', 
         }, 
         'japan1': {
-            'originalurl': 'https://www.youtube.com/watch?v=PmrWwYTlAVQ', 
+            'originalurl': 'https://www.youtube.com/watch?v=0vishEDtgdw', 
             'licenseurl': '', 
-            'tags': ["Tokyo", "Japan", "Shibuya", "scramble crossing"], 
+            'tags': ["Tokyo", "Japan", "Shibuya", "scramble crossing"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UCgdHxnHSXvcAi4PaMIY1Ltg', 
             'uploader': 'SHIBUYA COMMUNITY NEWS', 
         }, 
@@ -157,7 +158,7 @@ def main():
             'uploader': 'Department of Conservation', 
         }, 
         'southafrica1': {
-            'originalurl': 'https://www.youtube.com/watch?v=ObCoEm0o94A', 
+            'originalurl': 'https://www.youtube.com/watch?v=52qVlFqaKl4', 
             'licenseurl': '', 
             'tags': ["Cape Town", "South Africa", "Sea Point"], 
             'source': 'https://www.youtube.com/channel/UC9Ljd016Si9rv3KS-5CbpGg', 
@@ -180,7 +181,7 @@ def main():
         'spain3': {
             'originalurl': 'https://www.youtube.com/watch?v=L9HyLjRVN8E', 
             'licenseurl': '', 
-            'tags': ["Spain", "Catalunya", "Plaça Mercadal", "Ajuntament de Reus", "Reus"], 
+            'tags': ["Spain", "Catalunya", "Plaça Mercadal", "Ajuntament de Reus", "Reus"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UCUNkMfIrFuCJDzuEsezgr5g', 
             'uploader': 'Reus_cat', 
         }, 
@@ -201,21 +202,28 @@ def main():
         'usa1': {
             'originalurl': 'https://www.youtube.com/watch?v=KGuCGd726RA', 
             'licenseurl': '', 
-            'tags': ["United States", "USA", "Brooklyn Bridge", "Manhattan"], 
+            'tags': ["United States", "USA", "Brooklyn Bridge", "Manhattan"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UCp1ojgNJ8mNWdMDsdcMRA2Q', 
             'uploader': 'St. George Tower', 
         }, 
         'usa2': {
             'originalurl': 'https://www.youtube.com/watch?v=Bzv_t7AZPEQ', 
             'licenseurl': '', 
-            'tags': ["United States", "USA", "Boston"], 
+            'tags': ["United States", "USA", "Boston"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UC8gbWbcNNyb5-NIXvFklkOA', 
-            'uploader': 'IPTimelapse Webcam', 
+            'uploader': 'Boston and Maine Live', 
+        }, 
+        'usa3': {
+            'originalurl': 'https://www.youtube.com/watch?v=ZDdvss1v-0Q', 
+            'licenseurl': '', 
+            'tags': ["United States", "USA", "Boston"] + coronatags, 
+            'source': 'https://www.youtube.com/channel/UC8gbWbcNNyb5-NIXvFklkOA', 
+            'uploader': 'Boston and Maine Live', 
         }, 
         'vatican1': {
-            'originalurl': 'https://www.youtube.com/watch?v=vsWmAxq6-cA', 
+            'originalurl': 'https://www.youtube.com/watch?v=5YceQ8YqYMc', 
             'licenseurl': '', 
-            'tags': ["Vatican", "Vatican City", "Piazza San Pietro"], 
+            'tags': ["Vatican", "Vatican City", "Piazza San Pietro"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UC7E-LYc1wivk33iyt5bR5zQ', 
             'uploader': 'Vatican News', 
         }, 
