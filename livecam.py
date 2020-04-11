@@ -67,7 +67,8 @@ def main():
     
     livecams = {
         'coronavirus-roylab-stats': {
-            'originalurl': 'https://www.youtube.com/watch?v=qgylp3Td1Bw', 
+            #'originalurl': 'https://www.youtube.com/watch?v=qgylp3Td1Bw', 
+            'originalurl': 'https://www.youtube.com/watch?v=SLV1B5Lzy48', 
             'licenseurl': '', 
             'tags': ["coronavirus", "covid19", "world", "map", "news", "counter", "real time", "roylab stats"], 
             'source': 'https://www.youtube.com/channel/UCDGiCfCZIV5phsoGiPwIcyQ', 
@@ -192,6 +193,13 @@ def main():
             'source': 'https://www.youtube.com/channel/UCnsvJeZO4RigQ898WdDNoBw', 
             'uploader': 'EL PAIS', 
         }, 
+        'spain5': {
+            'originalurl': 'https://www.youtube.com/watch?v=lYSkn2e4HcY', 
+            'licenseurl': '', 
+            'tags': ["Spain", "Vigo", "Avenida de Madrid"] + coronatags, 
+            'source': 'https://www.youtube.com/channel/UC30mmDZa-tMpIS-cIXoErsA', 
+            'uploader': 'Cámaras de tráfico de Vigo', 
+        }, 
         'sweden1': {
             'originalurl': 'https://www.youtube.com/watch?v=EHH1SQDmqg4', 
             'licenseurl': 'https://creativecommons.org/licenses/by/3.0/', 
@@ -226,6 +234,13 @@ def main():
             'tags': ["Vatican", "Vatican City", "Piazza San Pietro"] + coronatags, 
             'source': 'https://www.youtube.com/channel/UC7E-LYc1wivk33iyt5bR5zQ', 
             'uploader': 'Vatican News', 
+        }, 
+        'volcanoverse': {
+            'originalurl': 'https://www.youtube.com/watch?v=b2UoZ6x2gxI', 
+            'licenseurl': '', 
+            'tags': ["Volcanoverse", "Volcano", "Volcanoes"], 
+            'source': 'https://www.youtube.com/channel/UCi3T_esus8Sr9I-3W5teVQQ', 
+            'uploader': 'Volcanoverse', 
         }, 
     }
     
