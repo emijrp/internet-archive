@@ -42,7 +42,8 @@ def main():
         tags = ['kiwix', 'offline', 'zim']
         url = 'https://ftp.acc.umu.se/mirror/kiwix.org/zim/%s/' % (wikisite)
         html = getURL(url=url)
-        zims = list(set(re.findall(r'href="([^ ]*?\.zim)\"', html))
+        zims = list(set(re.findall(r'href="([^ ]*?\.zim)\"', html)))
+        zims.sort()
         if 'wiki' in wikisite.lower():
             tags.append('mediawiki')
         for zim in zims:
