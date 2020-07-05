@@ -20,12 +20,12 @@ from archiveteamfun import *
 
 def main():
     wikisites = [
-        #'gutenberg', 
-        #'other', 
-        #'psiram', 
-        #'stack_exchange', 
-        #'ted', 
-        #'vikidia', 
+        'other', 
+        'gutenberg', 
+        'psiram', 
+        'stack_exchange', 
+        'ted', 
+        'vikidia', 
         
         'wikibooks', 
         'wikinews', 
@@ -42,7 +42,7 @@ def main():
         tags = ['kiwix', 'offline', 'zim']
         url = 'https://ftp.acc.umu.se/mirror/kiwix.org/zim/%s/' % (wikisite)
         html = getURL(url=url)
-        zims = re.findall(r'href="([^ ]*?\.zim)\"', html)
+        zims = list(set(re.findall(r'href="([^ ]*?\.zim)\"', html))
         if 'wiki' in wikisite.lower():
             tags.append('mediawiki')
         for zim in zims:
@@ -59,7 +59,7 @@ def main():
             metadata = ' '.join(["--metadata='subject:%s'" % (tag) for tag in tags2])
             os.system('ia upload %s zim/%s %s' % (zim, zim, metadata))
             os.remove('zim/%s' % (zim))
-            time.sleep(1)
+            time.sleep(60)
 
 if __name__ == '__main__':
     main()
