@@ -68,7 +68,9 @@ def main():
     livecams = {
         'coronavirus-roylab-stats': {
             #'originalurl': 'https://www.youtube.com/watch?v=qgylp3Td1Bw', 
-            'originalurl': 'https://www.youtube.com/watch?v=SLV1B5Lzy48', 
+            #'originalurl': 'https://www.youtube.com/watch?v=SLV1B5Lzy48', 
+            #'originalurl': 'https://www.youtube.com/watch?v=-ccnqR2UTTc', 
+            'originalurl': 'https://www.youtube.com/watch?v=NMre6IAAAiU', 
             'licenseurl': '', 
             'tags': ["coronavirus", "covid19", "world", "map", "news", "counter", "real time", "roylab stats"], 
             'source': 'https://www.youtube.com/channel/UCDGiCfCZIV5phsoGiPwIcyQ', 
@@ -238,7 +240,7 @@ def main():
         'volcanoverse': {
             'originalurl': 'https://www.youtube.com/watch?v=b2UoZ6x2gxI', 
             'licenseurl': '', 
-            'tags': ["Volcanoverse", "Volcano", "Volcanoes"], 
+            'tags': ["Volcanoverse", "volcano", "volcanoes", "volcanism", "volcanology", "vulcanology", "magma", "lava", "eruption", "volcanic eruption"], 
             'source': 'https://www.youtube.com/channel/UCi3T_esus8Sr9I-3W5teVQQ', 
             'uploader': 'Volcanoverse', 
         }, 
