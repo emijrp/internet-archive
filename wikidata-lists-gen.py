@@ -45,6 +45,14 @@ def main():
             }
             ORDER BY ?twitter
             """, 
+        "vk":
+            """
+            SELECT DISTINCT ?item ?vk
+            WHERE {
+                ?item wdt:P3185 ?vk.
+            }
+            ORDER BY ?vk
+            """, 
         "youtube":
             """
             SELECT DISTINCT ?item ?youtube
@@ -87,6 +95,10 @@ def main():
                 qparam = 'twitter' in result and result['twitter']['value'] or ''
                 if not re.search(r'(?m)^t\d{7,}$', qparam):
                     qurl = 'https://twitter.com/' + qparam
+            elif queryname == "vk":
+                qparam = 'vk' in result and result['vk']['value'] or ''
+                if not re.search(r'(?m)^t\d{7,}$', qparam):
+                    qurl = 'https://vk.com/' + qparam
             elif queryname == "youtube":
                 qparam = 'youtube' in result and result['youtube']['value'] or ''
                 if not re.search(r'(?m)^t\d{7,}$', qparam):
