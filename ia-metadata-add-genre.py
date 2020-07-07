@@ -25,17 +25,20 @@ def main():
     }
     for project, genre in genres.items():
         #https://archive.org/services/docs/api/internetarchive/quickstart.html#searching
-        for i in internetarchive.search_items('subject:"kiwix" AND subject:"zim" AND subject:"%s"' % (project.lower())):
-            itemid = i['identifier']
+        for i in internetarchive.search_items('subject:"kiwix" AND subject:"zim" AND subject:"%s"' % (project.lower())).iter_as_items():
+            itemid = i.item_metadata['metadata']['identifier']
             print(itemid)
-            if project.lower() in itemid.lower():
-                r = internetarchive.modify_metadata(itemid, metadata=dict(genre=genre))
-                if r.status_code == 200:
-                    print('Genre added: %s' % (genre))
+            if not 'genre' in i.item_metadata['metadata']:
+                if project.lower() in itemid.lower():
+                    r = internetarchive.modify_metadata(itemid, metadata=dict(genre=genre))
+                    if r.status_code == 200:
+                        print('Genre added: %s' % (genre))
+                    else:
+                        print('Error (%s) adding genre: %s' % (r.status_code, genre))
                 else:
-                    print('Error (%s) adding genre: %s' % (r.status_code, genre))
+                    print('Unknown project')
             else:
-                print('Unknown project')
+                print('Already has genre: %s' % (i.item_metadata['metadata']['genre']))
 
 if __name__ == '__main__':
     main()

@@ -310,17 +310,21 @@ def main():
     }
     for langid, langword in langs.items():
         #https://archive.org/services/docs/api/internetarchive/quickstart.html#searching
-        for i in internetarchive.search_items('subject:"kiwix" AND subject:"zim" AND subject:"%s"' % (langid)):
-            itemid = i['identifier']
+        for i in internetarchive.search_items('subject:"kiwix" AND subject:"zim" AND subject:"%s"' % (langid)).iter_as_items():
+            itemid = i.item_metadata['metadata']['identifier']
             print(itemid)
-            if '_%s_' % (langid) in itemid:
-                r = internetarchive.modify_metadata(itemid, metadata=dict(language=langword))
-                if r.status_code == 200:
-                    print('Language added: %s' % (langword))
+            if not 'language' in i.item_metadata['metadata']:
+                if '_%s_' % (langid) in itemid:
+                    r = internetarchive.modify_metadata(itemid, metadata=dict(language=langword))
+                    if r.status_code == 200:
+                        print('Language added: %s' % (langword))
+                    else:
+                        print('Error (%s) adding language: %s' % (r.status_code, langword))
                 else:
-                    print('Error (%s) adding language: %s' % (r.status_code, langword))
+                    print(i.item_metadata['metadata'])
+                    print('Unknown language')
             else:
-                print('Unknown language')
+                print('Already has language: %s' % (i.item_metadata['metadata']['language']))
 
 if __name__ == '__main__':
     main()
