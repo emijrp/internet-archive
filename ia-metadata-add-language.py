@@ -311,8 +311,12 @@ def main():
     for langid, langword in langs.items():
         #https://archive.org/services/docs/api/internetarchive/quickstart.html#searching
         for i in internetarchive.search_items('subject:"kiwix" AND subject:"zim" AND subject:"%s"' % (langid)).iter_as_items():
-            itemid = i.item_metadata['metadata']['identifier']
-            print(itemid)
+            try:
+                itemid = i.item_metadata['metadata']['identifier']
+                print(itemid)
+            except:
+                print('Error in', i)
+                continue
             if not 'language' in i.item_metadata['metadata']:
                 if '_%s_' % (langid) in itemid:
                     r = internetarchive.modify_metadata(itemid, metadata=dict(language=langword))

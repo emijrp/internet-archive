@@ -20,8 +20,12 @@ import internetarchive
 
 def main():
     for i in internetarchive.search_items('subject:"kiwix" AND subject:"zim"').iter_as_items():
-        itemid = i.item_metadata['metadata']['identifier']
-        print(itemid)
+        try:
+            itemid = i.item_metadata['metadata']['identifier']
+            print(itemid)
+        except:
+            print('Error in', i)
+            continue
         
         if not 'date' in i.item_metadata['metadata']:
             date = re.findall(r'(?im)_(20\d\d-\d\d)\.zim', itemid)

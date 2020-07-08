@@ -21,8 +21,12 @@ import internetarchive
 def main():
     desc = 'You can open ZIM files with <a href="https://www.kiwix.org/">Kiwix</a> software.'
     for i in internetarchive.search_items('subject:"kiwix" AND subject:"zim"').iter_as_items():
-        itemid = i.item_metadata['metadata']['identifier']
-        print(itemid)
+        try:
+            itemid = i.item_metadata['metadata']['identifier']
+            print(itemid)
+        except:
+            print('Error in', i)
+            continue
         if not 'description' in i.item_metadata['metadata']:
             r = internetarchive.modify_metadata(itemid, metadata=dict(description=desc))
             if r.status_code == 200:

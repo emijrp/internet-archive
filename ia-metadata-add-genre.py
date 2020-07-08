@@ -26,8 +26,12 @@ def main():
     for project, genre in genres.items():
         #https://archive.org/services/docs/api/internetarchive/quickstart.html#searching
         for i in internetarchive.search_items('subject:"kiwix" AND subject:"zim" AND subject:"%s"' % (project.lower())).iter_as_items():
-            itemid = i.item_metadata['metadata']['identifier']
-            print(itemid)
+            try:
+                itemid = i.item_metadata['metadata']['identifier']
+                print(itemid)
+            except:
+                print('Error in', i)
+                continue
             if not 'genre' in i.item_metadata['metadata']:
                 if project.lower() in itemid.lower():
                     r = internetarchive.modify_metadata(itemid, metadata=dict(genre=genre))
