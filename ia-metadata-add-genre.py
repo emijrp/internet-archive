@@ -20,8 +20,18 @@ import internetarchive
 
 def main():
     genres = {
-        'Wikipedia': 'Encyclopedia',
-        'Wiktionary': 'Dictionary',
+        'Gutenberg': 'Literature', 
+        'Khan-academy-videos': 'Course', 
+        
+        'Wikibooks': 'Course', 
+        'Wikinews': 'News', 
+        'Wikipedia': 'Encyclopedia', 
+        'Wikiquote': 'Quotes', 
+        'Wikisource': 'Literature', 
+        'Wikispecies': 'Encyclopedia', 
+        'Wikiversity': 'Course', 
+        'Wikivoyage': 'Travel', 
+        'Wiktionary': 'Dictionary', 
     }
     for project, genre in genres.items():
         #https://archive.org/services/docs/api/internetarchive/quickstart.html#searching
