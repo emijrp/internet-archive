@@ -361,6 +361,7 @@ def main():
             
             md = {
                 'mediatype': 'texts', 
+                'licenseurl': 'https://creativecommons.org/licenses/by-sa/3.0/', 
                 'language': langword, 
                 'genre': genres[sisterproject], 
                 'date': dateiso, 
