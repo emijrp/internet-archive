@@ -360,6 +360,7 @@ def main():
                 continue
             
             md = {
+                'mediatype': 'texts', 
                 'language': langword, 
                 'genre': genres[sisterproject], 
                 'date': dateiso, 
