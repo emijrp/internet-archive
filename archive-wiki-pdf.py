@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+import json
 import re
 import os
 import time
@@ -323,7 +324,7 @@ genres = {
     "wikivoyage": "Travel", 
     "wiktionary": "Dictionary", 
 }
-sisterprojects = {
+projects = {
     "wikibooks": "wikibooks", 
     "wikinews": "wikinews", 
     "wikipedia": "wiki", 
@@ -335,62 +336,103 @@ sisterprojects = {
     "wiktionary": "wiktionary", 
 }
 
+def archivefromwikidata(q='', project='wikipedia'):
+    if not re.search(r'(?m)^Q\d+$', q):
+        print("Error in Q", q)
+        return
+    qfile =  '%s.json' % (q)
+    os.system('wget "https://www.wikidata.org/wiki/Special:EntityData/%s.json" -O %s' % (q, qfile))
+    qjson = {}
+    with open(qfile, 'r') as f:
+        jsonraw = f.read()
+        qjson = json.loads(jsonraw)
+    print(len(qjson['entities'][q]['sitelinks'].keys()))
+    for sitelink in qjson['entities'][q]['sitelinks'].keys():
+        if project:
+            m = re.findall(r'(?im)^([a-z]{2,3})%s$' % (projects[project]), sitelink)
+            wikilang = m and m[0] or ''
+            if not wikilang or wikilang not in langs.keys():
+                continue
+        else:
+            continue
+        print(wikilang, project)
+        archivewikipdf(wikilang=wikilang, project=project, pagetitle=qjson['entities'][q]['sitelinks'][sitelink]['title'])
+    
+    if os.path.exists(qfile):
+        os.remove(qfile)
+
+def archivewikipdf(wikilang='', project='', pagetitle=''):
+    if re.search(r'(?im)[^a-z0-9_ ]', pagetitle):
+        print('-'*30)
+        print("Error unsupported title", pagetitle)
+        return
+    
+    langword = ''
+    if wikilang in langs.keys():
+        langword = langs[wikilang]
+    else:
+        print("Error unknown lang", wikilang)
+        return
+    projectucfirst = project[0].upper()+project[1:]
+    pagetitle_ = re.sub(' ', '_', pagetitle)
+    print('\n', '-'*30, '\n', wikilang, pagetitle)
+    pdfurl = 'https://%s.%s.org/api/rest_v1/page/pdf/%s' % (wikilang, project, pagetitle_)
+    dateiso = datetime.datetime.now().isoformat().split('T')[0]
+    dateiso2 = re.sub('-', '', dateiso)
+    pdfname = '%s%s-%s-%s.pdf' % (wikilang, projects[project], pagetitle_, dateiso2)
+    itemid = pdfname
+    itemurl = 'https://archive.org/details/' + itemid
+    itemhtml = getURL(url=itemurl, retry=False)
+    if itemhtml and not 'Item cannot be found' in itemhtml:
+        print('Skiping. Item exists', itemurl)
+        return
+    
+    try:
+        os.system('wget "%s" -O "%s"' % (pdfurl, pdfname))
+        if os.path.exists(pdfname) and os.path.getsize(pdfname) < 1:
+            print("Error generating PDF")
+            os.remove(pdfname)
+            return
+    except:
+        print("Error generating PDF")
+        return
+    
+    md = {
+        'mediatype': 'texts', 
+        'creator': projectucfirst,
+        'licenseurl': 'https://creativecommons.org/licenses/by-sa/3.0/', 
+        'language': langword, 
+        'genre': genres[project], 
+        'date': dateiso, 
+        'year': dateiso[:4], 
+        'description': '%s page.' % (projectucfirst), 
+        'subject': '%s; offline; pdf; page; mediawiki; %s; %s; %s' % (project.lower(), dateiso, wikilang, pagetitle), 
+    }
+    internetarchive.upload(itemid, pdfname, metadata=md)
+    print('Uploaded to https://archive.org/details/%s' % (itemid))
+    if pdfname and '.pdf' in pdfname and os.path.exists(pdfname):
+        os.remove(pdfname)
+
 def main():
-    os.system('wget "https://www.wikidata.org/wiki/Special:SiteMatrix" -O sitematrix.html')
+    """os.system('wget "https://www.wikidata.org/wiki/Special:SiteMatrix" -O sitematrix.html')
     raw = ''
     with open('sitematrix.html', 'r') as f:
         raw = f.read()
     
-    for sisterproject in ['wiktionary', ]:
-        sisterprojectucfirst = sisterproject[0].upper()+sisterproject[1:]
-        wikilangs = re.findall(r'(?im)<td><a href="//([a-z]{2,3})\.%s\.org">\1</a>' % (sisterproject), raw)
+    for project in ['wiktionary', ]:
+        projectucfirst = project[0].upper()+project[1:]
+        wikilangs = re.findall(r'(?im)<td><a href="//([a-z]{2,3})\.%s\.org">\1</a>' % (project), raw)
         wikilangs = list(set(wikilangs))
         wikilangs.sort()
-        
-        for wikilang in wikilangs:
-            if wikilang in langs.keys():
-                langword = langs[wikilang]
-            else:
-                continue
-            pagetitle = 'Main Page'
-            pagetitle_ = re.sub(' ', '_', pagetitle)
-            print('-'*30, '\n', wikilang, pagetitle)
-            pdfurl = 'https://%s.%s.org/api/rest_v1/page/pdf/%s' % (wikilang, sisterproject, pagetitle_)
-            dateiso = datetime.datetime.now().isoformat().split('T')[0]
-            dateiso2 = re.sub('-', '', dateiso)
-            pdfname = '%s%s-%s-%s.pdf' % (wikilang, sisterprojects[sisterproject], pagetitle_, dateiso2)
-            itemid = pdfname
-            
-            itemurl = 'https://archive.org/details/' + itemid
-            itemhtml = getURL(url=itemurl, retry=False)
-            if itemhtml and not 'Item cannot be found' in itemhtml:
-                print('Skiping. Item exists', itemurl)
-                continue
-            
-            try:
-                os.system('wget "%s" -O "%s"' % (pdfurl, pdfname))
-                if os.path.exists(pdfname) and os.path.getsize(pdfname) < 1:
-                    print("Error generating PDF")
-                    continue
-            except:
-                print("Error generating PDF")
-                continue
-            
-            md = {
-                'mediatype': 'texts', 
-                'creator': sisterprojectucfirst,
-                'licenseurl': 'https://creativecommons.org/licenses/by-sa/3.0/', 
-                'language': langword, 
-                'genre': genres[sisterproject], 
-                'date': dateiso, 
-                'year': dateiso[:4], 
-                'description': '%s page.' % (sisterprojectucfirst), 
-                'subject': '%s; offline; pdf; page; mediawiki; %s; %s; %s' % (sisterproject.lower(), dateiso, wikilang, pagetitle), 
-            }
-            internetarchive.upload(itemid, pdfname, metadata=md)
-            print('Uploaded to https://archive.org/details/%s' % (itemid))
-            if pdfname and '.pdf' in pdfname and os.path.exists(pdfname):
-                os.remove(pdfname)
+    """
+    """
+    archivewikipdf(wikilang='en', project='wikipedia', pagetitle='Earth')
+    archivewikipdf(wikilang='nn', project='wikipedia', pagetitle='Jorda')
+    archivewikipdf(wikilang='ab', project='wikipedia', pagetitle='Адгьыл')
+    archivewikipdf(wikilang='he', project='wikipedia', pagetitle='כדור הארץ')
+    archivewikipdf(wikilang='zh', project='wikipedia', pagetitle='地球')
+    """
+    archivefromwikidata(q='Q2', project='wikipedia')
 
 if __name__ == '__main__':
     main()
