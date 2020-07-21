@@ -347,7 +347,9 @@ def archivefromwikidata(q='', project='wikipedia'):
         jsonraw = f.read()
         qjson = json.loads(jsonraw)
     print(len(qjson['entities'][q]['sitelinks'].keys()))
-    for sitelink in qjson['entities'][q]['sitelinks'].keys():
+    sitelinks = list(qjson['entities'][q]['sitelinks'].keys())
+    sitelinks.sort()
+    for sitelink in sitelinks:
         if project:
             m = re.findall(r'(?im)^([a-z]{2,3})%s$' % (projects[project]), sitelink)
             wikilang = m and m[0] or ''
@@ -434,7 +436,22 @@ def main():
     archivewikipdf(wikilang='he', project='wikipedia', pagetitle='כדור הארץ')
     archivewikipdf(wikilang='zh', project='wikipedia', pagetitle='地球')
     """
-    archivefromwikidata(q='Q2', project='wikipedia')
+    
+    #archivefromwikidata(q='Q2', project='wikipedia') #earth
+    archivefromwikidata(q='Q1', project='wikipedia') #universe
+    archivefromwikidata(q='Q167', project='wikipedia') #pi
+    
+    #Vital 1
+    archivefromwikidata(q='Q2', project='wikipedia') #earth
+    archivefromwikidata(q='Q5', project='wikipedia') #human
+    archivefromwikidata(q='Q200325', project='wikipedia') #human history
+    archivefromwikidata(q='Q315', project='wikipedia') #language
+    archivefromwikidata(q='Q3', project='wikipedia') #life
+    archivefromwikidata(q='Q395', project='wikipedia') #mathematics
+    archivefromwikidata(q='Q5891', project='wikipedia') #philosophy
+    archivefromwikidata(q='Q336', project='wikipedia') #science
+    archivefromwikidata(q='Q11016', project='wikipedia') #technology
+    archivefromwikidata(q='Q2018526', project='wikipedia') #arts
 
 if __name__ == '__main__':
     main()
