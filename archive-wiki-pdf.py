@@ -355,7 +355,7 @@ def archivefromwikidata(q='', project='wikipedia'):
                 continue
         else:
             continue
-        print(wikilang, project)
+        #print(wikilang, project)
         archivewikipdf(wikilang=wikilang, project=project, pagetitle=qjson['entities'][q]['sitelinks'][sitelink]['title'])
     
     if os.path.exists(qfile):
@@ -407,7 +407,7 @@ def archivewikipdf(wikilang='', project='', pagetitle=''):
         'date': dateiso, 
         'year': dateiso[:4], 
         'description': '%s page.' % (projectucfirst), 
-        'subject': '%s; offline; pdf; page; mediawiki; %s; %s; %s' % (project.lower(), dateiso, wikilang, pagetitle), 
+        'subject': '%s; offline; pdf; page; mediawiki; %s; %s; %s; %s%s; %s' % (project.lower(), dateiso, wikilang, langword, wikilang, projects[project], pagetitle), 
         'originalurl': originalurl, 
     }
     internetarchive.upload(itemid, pdfname, metadata=md)
