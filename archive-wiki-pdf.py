@@ -342,6 +342,7 @@ def main():
         raw = f.read()
     
     for sisterproject in ['wiktionary', ]:
+        sisterprojectucfirst = sisterproject[0].upper()+sisterproject[1:]
         wikilangs = re.findall(r'(?im)<td><a href="//([a-z]{2,3})\.%s\.org">\1</a>' % (sisterproject), raw)
         wikilangs = list(set(wikilangs))
         wikilangs.sort()
@@ -377,12 +378,13 @@ def main():
             
             md = {
                 'mediatype': 'texts', 
+                'creator': sisterprojectucfirst,
                 'licenseurl': 'https://creativecommons.org/licenses/by-sa/3.0/', 
                 'language': langword, 
                 'genre': genres[sisterproject], 
                 'date': dateiso, 
                 'year': dateiso[:4], 
-                'description': '%s page.' % (sisterproject[0].upper()+sisterproject[1:]), 
+                'description': '%s page.' % (sisterprojectucfirst), 
                 'subject': '%s; offline; pdf; page; mediawiki; %s; %s; %s' % (sisterproject.lower(), dateiso, wikilang, pagetitle), 
             }
             internetarchive.upload(itemid, pdfname, metadata=md)
