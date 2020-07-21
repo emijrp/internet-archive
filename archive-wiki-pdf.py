@@ -380,6 +380,7 @@ def archivewikipdf(wikilang='', project='', pagetitle=''):
     dateiso = datetime.datetime.now().isoformat().split('T')[0]
     dateiso2 = re.sub('-', '', dateiso)
     pdfname = '%s%s-%s-%s.pdf' % (wikilang, projects[project], pagetitle_, dateiso2)
+    originalurl = 'https://%s.%s.org/wiki/%s' % (wikilang, project, pagetitle_)
     itemid = pdfname
     itemurl = 'https://archive.org/details/' + itemid
     itemhtml = getURL(url=itemurl, retry=False)
@@ -407,6 +408,7 @@ def archivewikipdf(wikilang='', project='', pagetitle=''):
         'year': dateiso[:4], 
         'description': '%s page.' % (projectucfirst), 
         'subject': '%s; offline; pdf; page; mediawiki; %s; %s; %s' % (project.lower(), dateiso, wikilang, pagetitle), 
+        'originalurl': originalurl, 
     }
     internetarchive.upload(itemid, pdfname, metadata=md)
     print('Uploaded to https://archive.org/details/%s' % (itemid))
