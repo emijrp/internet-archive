@@ -20,9 +20,12 @@ import json
 import re
 import os
 import time
+import urllib.parse
+
 import internetarchive
 
 from archiveteamfun import *
+from wikidatafun import *
 
 #https://meta.wikimedia.org/wiki/List_of_Wikipedias
 langs = {
@@ -336,6 +339,20 @@ projects = {
     "wiktionary": "wiktionary", 
 }
 
+def archivefromwikidatasparql(sparql='', project='wikipedia'):
+    if not sparql:
+        return
+    url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=%s' % (urllib.parse.quote(sparql))
+    url = '%s&format=json' % (url)
+    print("Loading...", url)
+    sparql = getURL(url=url)
+    json1 = loadSPARQL(sparql=sparql)
+    for result in json1['results']['bindings']:
+        q = 'item' in result and result['item']['value'].split('/entity/')[1] or ''
+        if not q:
+            break
+        archivefromwikidata(q=q, project='wikipedia')
+
 def archivefromwikidata(q='', project='wikipedia'):
     if not re.search(r'(?m)^Q\d+$', q):
         print("Error in Q", q)
@@ -412,8 +429,12 @@ def archivewikipdf(wikilang='', project='', pagetitle=''):
         'subject': '%s; offline; pdf; page; mediawiki; %s; %s; %s; %s%s; %s' % (project.lower(), dateiso, wikilang, langword, wikilang, projects[project], pagetitle), 
         'originalurl': originalurl, 
     }
-    internetarchive.upload(itemid, pdfname, metadata=md)
-    print('Uploaded to https://archive.org/details/%s' % (itemid))
+    try:
+        internetarchive.upload(itemid, pdfname, metadata=md)
+        print('Uploaded to https://archive.org/details/%s' % (itemid))
+    except:
+        print("Error uploading file to", itemid)
+    
     if pdfname and '.pdf' in pdfname and os.path.exists(pdfname):
         os.remove(pdfname)
 
@@ -437,6 +458,7 @@ def main():
     archivewikipdf(wikilang='zh', project='wikipedia', pagetitle='地球')
     """
     
+    """
     #archivefromwikidata(q='Q2', project='wikipedia') #earth
     archivefromwikidata(q='Q1', project='wikipedia') #universe
     archivefromwikidata(q='Q167', project='wikipedia') #pi
@@ -452,6 +474,37 @@ def main():
     archivefromwikidata(q='Q336', project='wikipedia') #science
     archivefromwikidata(q='Q11016', project='wikipedia') #technology
     archivefromwikidata(q='Q2018526', project='wikipedia') #arts
+    """
+    
+    """
+    #other
+    archivefromwikidata(q='Q309', project='wikipedia') #history
+    archivefromwikidata(q='Q11756', project='wikipedia') #prehistory
+    archivefromwikidata(q='Q15', project='wikipedia') #africa
+    archivefromwikidata(q='Q48', project='wikipedia') #asia
+    archivefromwikidata(q='Q46', project='wikipedia') #europe
+    archivefromwikidata(q='Q49', project='wikipedia') #north america
+    archivefromwikidata(q='Q18', project='wikipedia') #south america
+    archivefromwikidata(q='Q538', project='wikipedia') #oceania
+    """
+    """
+    #more
+    for year in range(1001, 2040):
+        archivewikipdf(wikilang='en', project='wikipedia', pagetitle='%s' % (year))
+    
+    archivefromwikidata(q='Q48584', project='wikipedia') #rosetta stone
+    """
+    #ideas
+    #idiomas
+    sparql = """
+    SELECT ?item
+    WHERE {
+      ?item wdt:P31 wd:Q34770.
+      ?item wikibase:sitelinks ?sitelinks.
+    }
+    ORDER BY DESC(?sitelinks) LIMIT 1000
+    """
+    archivefromwikidatasparql(sparql=sparql, project='wikipedia')
 
 if __name__ == '__main__':
     main()
