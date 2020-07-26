@@ -430,7 +430,7 @@ def archivewikipdf(wikilang='', project='', pagetitle=''):
         'originalurl': originalurl, 
     }
     try:
-        internetarchive.upload(itemid, pdfname, metadata=md)
+        internetarchive.upload(itemid, pdfname, metadata=md, queue_derive=False)
         print('Uploaded to https://archive.org/details/%s' % (itemid))
     except:
         print("Error uploading file to", itemid)
