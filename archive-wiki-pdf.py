@@ -495,16 +495,29 @@ def main():
     archivefromwikidata(q='Q48584', project='wikipedia') #rosetta stone
     """
     #ideas
+    #bios
+    sparqlbio = """
+    SELECT DISTINCT ?item ?itemLabel ?sitelinks
+    WHERE {
+      ?item wdt:P31 wd:Q5.
+      ?item wdt:P570 ?deathdate.
+      FILTER((?deathdate <= "1000-01-01T00:00:00Z"^^xsd:dateTime)).
+      ?item wikibase:sitelinks ?sitelinks.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+    }
+    ORDER BY DESC(?sitelinks) LIMIT 1000
+    """
+
     #idiomas
-    sparql = """
-    SELECT ?item
+    sparqllangs = """
+    SELECT DISTINCT ?item
     WHERE {
       ?item wdt:P31 wd:Q34770.
       ?item wikibase:sitelinks ?sitelinks.
     }
-    ORDER BY DESC(?sitelinks) LIMIT 1000
+    ORDER BY DESC(?sitelinks) LIMIT 1000 OFFSET 6000
     """
-    archivefromwikidatasparql(sparql=sparql, project='wikipedia')
+    archivefromwikidatasparql(sparql=sparqllangs, project='wikipedia')
 
 if __name__ == '__main__':
     main()
