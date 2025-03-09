@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (C) 2018 emijrp <emijrp@gmail.com>
+# Copyright (C) 2018-2025 emijrp <emijrp@gmail.com>
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -30,8 +30,11 @@ from archiveteamfun import *
 def main():
     enwpsite = pywikibot.Site('en', 'wikipedia')
     atsite = pywikibot.Site('archiveteam', 'archiveteam')
+    page = pywikibot.Page(atsite, "User:HadeanEon/test")
+    page.text = "test"
+    page.save("BOT - test")
     
-    year1 = 2015
+    year1 = 2000
     year2 = datetime.datetime.now().year
     if len(sys.argv) >= 2:
         year1 = int(sys.argv[1])
@@ -75,22 +78,17 @@ def main():
             birthdate = 'birthdate' in result and result['birthdate']['value'].split('T')[0] or ''
             deathdate = 'deathdate' in result and result['deathdate']['value'].split('T')[0] or ''
             website = 'website' in result and result['website']['value'] or ''
-            if website in outputlist:
-                continue #duplicate row because multiple birthdates resolution (1940, 1940-02-01, etc)
-            else:
-                outputlist.append(website)
-            viewer = [getArchiveDetails(url=website)]
-            
             if not website:
                 continue
-            
+            if website in outputlist:
+                continue #avoid duplicating row because multiple birthdates resolution (1940, 1940-02-01, etc)
+            outputlist.append(website)
+            viewer = [getArchiveDetails(url=website)]
             row = [q, itemLabel, itemDescription, causeLabel, birthdate, deathdate, website, viewer]
             print(row)
             rows.append(row)
-            
             if len(rows) >= limit:
                 break
-        
         c = 1
         rowsplain = ""
         totaljobsize = 0
@@ -108,23 +106,27 @@ def main():
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
             #rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  ||  || ')
-            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  ||  || ')
+            recommendedaction = '<code>!a%s %s --explain "Deaths in %d"</code>' % (re.search(r"(?im)^https?://[^/]+/[^/]+$", website) and "o" or "", website, year)
+            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '| colspan=6 style="white-space: nowrap;" | %s' % (recommendedaction))
             c += 1
-        output = """This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:%s deaths|Category:%s deaths]]'''. The websites for these entities could vanish in the foreseable future.
+        savednum = len(re.findall(r'{{saved}}', rowsplain))
+        notsavednum = len(re.findall(r'{{notsaved}}', rowsplain))
+        output = f"""{{{{piechart|done={savednum}|total={savednum+notsavednum}}}}}
+This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:{year} deaths|Category:{year} deaths]]'''. The websites for these entities could vanish in the foreseable future.
 
-* '''Statistics''': {{saved}} (%s){{·}} {{notsaved}} (%s){{·}} Total size (%s)
+* '''Statistics''': {{{{saved}}}} ({savednum}){{{{·}}}} {{{{notsaved}}}} ({notsavednum}){{{{·}}}} Total size ({convertsize(b=totaljobsize)})
 
 Do not edit this page, it is automatically updated by bot. There is a [https://www.archiveteam.org/index.php?title={{FULLPAGENAMEE}}/list&action=raw raw list] of URLs.
 
-{| class="wikitable sortable plainlinks" style="font-size: 85%%;"
+{{| class="wikitable sortable plainlinks" style="font-size: 85%;"
 ! rowspan=2 width=150px | Name !! rowspan=2 | Description !! rowspan=2 | Birth date !! rowspan=2 | Death date !! rowspan=2 | Website !! rowspan=2 width=100px | Status !! colspan=6 | Archive details
 |-
-! Tool !! Domain !! Job !! Date !! Size !! Objects %s
-|}
+! Tool !! Domain !! Job !! Date !! Size !! Objects {rowsplain}
+|}}
 
-{{deathwatch}}
+{{{{deathwatch}}}}
 
-[[Category:Archive Team]]""" % (year, year, len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize), rowsplain)
+[[Category:Archive Team]]"""
         print(output)
         
         page = pywikibot.Page(atsite, "Deaths in %s" % (year))

@@ -300,38 +300,51 @@ def genJobDetails(tool='', domainlink='', joburl='', jobdate='', jobsize='', job
 
 def getArchiveDetailsArchivebot(url='', singleurl=False):
     viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
-    origdomain = url.split('//')[1].split('/')[0]
+    origdomain = url.split('://')[1].split('/')[0]
     origdomain2 = re.sub(r'(?im)^(www\d*)\.', '.', origdomain)
     rawdomains = getURL(url=viewerurl, cache=True)
-    domains = re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)
+    domains = list(set(re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)))
     if not domains: #no results for this url, remove cache
         removeFromArchivebotCache(url=viewerurl)
     details = []
     totaljobsize = 0
-    jobslimit = 100000
+    jobslimit = 10 # before 10000
     tool = '[[ArchiveBot]]'
     for domain in domains:
         if domain != origdomain and not domain in origdomain and not origdomain2 in domain:
             continue
         urljobs = "https://archive.fart.website/archivebot/viewer/domain/" + domain
-        rawjobs = getURL(url=urljobs, cache=True)
-        jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)", rawjobs)
+        rawjobs = getURL(url=urljobs, cache=False) #false, we want the most recent list of jobs always
+        
+        #remove unrelated jobs, for example googlesites, facebook, etc
+        rawjobs2 = ""
+        for rawjobcandidate in rawjobs.split("<tr>"):
+            if url.split('://')[1].strip('/') in rawjobcandidate:
+                rawjobs2 += rawjobcandidate
+        rawjobs = rawjobs2
+        
+        jobs = re.findall(r"(?im)/archivebot/viewer/job/([^<>\"]+)\"", rawjobs)
+        print("jobs", jobs)
         for jobid in jobs[:jobslimit]:
+            jobidtruncated = jobid[-5:]
             urljob = "https://archive.fart.website/archivebot/viewer/job/" + jobid
+            print(urljob)
             rawjob = getURL(url=urljob, cache=True)
-            jsonfileurls = re.findall(r'(?im)<a href="(https://archive\.org/download/[^"<> ]+\.json)">', rawjob)
+            jsonfileurls = re.findall(r'(?im)<a href="(https://archive\.org/download/[^<>\" ]+\.json)">', rawjob)
             for jsonfileurl in jsonfileurls:
+                print(jsonfileurl)
                 if singleurl:
                     jsonraw = getURL(url=jsonfileurl, cache=True) #cache json from internet archive
                     try:
                         jsonfileloaded = json.loads(jsonraw)
                     except:
                         continue
-                    if not 'url' in jsonfileloaded or ('url' in jsonfileloaded and jsonfileloaded['url'] != url):
+                    if not 'url' in jsonfileloaded or ('url' in jsonfileloaded and jsonfileloaded['url'].strip('/') != url.strip('/')):
                         continue
                 
                 jobproblem = False
-                warcs = re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\s*</a>\s*</td>\s*<td>(\d+)</td>" % (jobid), rawjob)
+                warcs = re.findall(r"(?im)<a href=\"[^<>\" ]+?-(inf|shallow)-(\d{8})-(\d{6})-%s[^<> ]*?\.warc\.gz\">[^<>\"]*?</a>\s*</td>\s*<td>(\d+)</td>" % (jobidtruncated), rawjob)
+                print(warcs)
                 if not warcs:
                     jobproblem = True
                 jobdatetimes = []
@@ -342,8 +355,11 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                 for jobdatetime in jobdatetimes:
                     if not jobdatetime in jsonfileurl:
                         continue
-                    warcsnometa = len(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-(\d{8})-(\d{6})-%s-[^<> ]*?\d+\.warc\.gz\s*</a>" % (jobid), rawjob))
-                    inforshallow = list(set(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-\d{8}-\d{6}-%s[^<> ]*?\.warc\.gz\s*</a>" % (jobid), rawjob)))
+                    warcsnometa = len(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-(\d{8})-(\d{6})-%s-[^<> ]*?\d+\.warc\.gz" % (jobidtruncated), rawjob))
+                    inforshallow = list(set(re.findall(r"(?im)>\s*[^<>\"]+?-(inf|shallow)-\d{8}-\d{6}-%s[^<> ]*?\.warc\.gz" % (jobidtruncated), rawjob)))
+                    
+                    print(jobdatetime, warcsnometa, inforshallow)
+                    
                     inforshallow = len(inforshallow) == 1 and inforshallow[0] or 'unknown'
                     toolb = "%s%s" % (tool, inforshallow == 'unknown' and '' or "&nbsp;(!%s)" % (inforshallow == 'inf' and 'a' or 'ao'))
                     jobaborted = False
@@ -353,7 +369,7 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                     jobsize = sum([jobdatetime == '%s-%s' % (warc[1], warc[2]) and int(warc[3]) or 0 for warc in warcs])
                     if jobdate and jobdate != 'nodate':
                         jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
-                    jobdetails = genJobDetails(tool=toolb, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobid, jobid), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa), jobaborted=jobaborted, jobproblem=jobproblem)
+                    jobdetails = genJobDetails(tool=toolb, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobidtruncated, jobidtruncated), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa), jobaborted=jobaborted, jobproblem=jobproblem)
                     totaljobsize += jobsize
                     details.append(jobdetails)
     return details, totaljobsize
@@ -490,13 +506,22 @@ def getArchiveDetailsYoutubearchive(url='', singleurl=False):
 
 def getArchiveDetailsCore(url='', singleurl=False):
     detailsArchivebot, totaljobsizeArchivebot = getArchiveDetailsArchivebot(url=url, singleurl=singleurl)
+    """
+    deprecated archives
+    
     detailsChromebot, totaljobsizeChromebot = getArchiveDetailsChromebot(url=url, singleurl=singleurl)
     detailsNarabot, totaljobsizeNarabot = getArchiveDetailsNarabot(url=url, singleurl=singleurl)
     detailsWikiteam, totaljobsizeWikiteam = getArchiveDetailsWikiteam(url=url, singleurl=singleurl)
     detailsYoutubearchive, totaljobsizeYoutubearchive = getArchiveDetailsYoutubearchive(url=url, singleurl=singleurl)
+    """
     
+    """
     details = detailsArchivebot + detailsChromebot + detailsNarabot + detailsWikiteam + detailsYoutubearchive
     totaljobsize = totaljobsizeArchivebot + totaljobsizeChromebot + totaljobsizeNarabot + totaljobsizeWikiteam + totaljobsizeYoutubearchive
+    """
+    
+    details = detailsArchivebot
+    totaljobsize = totaljobsizeArchivebot
     
     details.sort()
     detailsplain = '\n|-\n'.join(details)
