@@ -28,96 +28,96 @@ import pywikibot.pagegenerators as pagegenerators
 from archiveteamfun import *
 
 def main():
-    enwpsite = pywikibot.Site('en', 'wikipedia')
-    atsite = pywikibot.Site('archiveteam', 'archiveteam')
-    page = pywikibot.Page(atsite, "User:HadeanEon/test")
-    page.text = "test"
-    page.save("BOT - test")
-    
-    year1 = 2017
-    year2 = datetime.datetime.now().year
-    if len(sys.argv) >= 2:
-        year1 = int(sys.argv[1])
-        year2 = int(sys.argv[2])
-    
-    start = ''
-    years = range(year1, year2+1) 
-    limit = 1000
-    
-    for year in years:
-        outputlist = []
-        query = """
-        SELECT ?item ?itemLabel ?itemDescription ?causeLabel ?birthdate ?deathdate ?website
-        WHERE
-        {
-            ?item wdt:P31 wd:Q5.
-            ?item wdt:P856 ?website.
-            OPTIONAL { ?item wdt:P569 ?birthdate. }
-            OPTIONAL { ?item wdt:P1196 ?cause. }
-            ?item wdt:P570 ?deathdate.
-            FILTER (?deathdate >= "%s-01-01T00:00:00Z"^^xsd:dateTime).
-            FILTER (?deathdate <= "%s-12-31T23:59:59Z"^^xsd:dateTime).
-            SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-        }
-        ORDER BY ?deathdate ?birthdate
-        """ % (year, year)
-        url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=%s' % (urllib.parse.quote(query))
-        url = '%s&format=json' % (url)
-        print("Loading...", url)
-        sparql = ""
-        json1 = ""
-        retries = 10
-        while (not sparql or not json1) and retries > 0:
+	enwpsite = pywikibot.Site('en', 'wikipedia')
+	atsite = pywikibot.Site('archiveteam', 'archiveteam')
+	page = pywikibot.Page(atsite, "User:HadeanEon/test")
+	page.text = "test"
+	page.save("BOT - test")
+	
+	year1 = 2017
+	year2 = datetime.datetime.now().year
+	if len(sys.argv) >= 2:
+		year1 = int(sys.argv[1])
+		year2 = int(sys.argv[2])
+	
+	start = ''
+	years = range(year1, year2+1) 
+	limit = 1000
+	
+	for year in years:
+		outputlist = []
+		query = """
+		SELECT ?item ?itemLabel ?itemDescription ?causeLabel ?birthdate ?deathdate ?website
+		WHERE
+		{
+			?item wdt:P31 wd:Q5.
+			?item wdt:P856 ?website.
+			OPTIONAL { ?item wdt:P569 ?birthdate. }
+			OPTIONAL { ?item wdt:P1196 ?cause. }
+			?item wdt:P570 ?deathdate.
+			FILTER (?deathdate >= "%s-01-01T00:00:00Z"^^xsd:dateTime).
+			FILTER (?deathdate <= "%s-12-31T23:59:59Z"^^xsd:dateTime).
+			SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+		}
+		ORDER BY ?deathdate ?birthdate
+		""" % (year, year)
+		url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=%s' % (urllib.parse.quote(query))
+		url = '%s&format=json' % (url)
+		print("Loading...", url)
+		sparql = ""
+		json1 = ""
+		retries = 10
+		while (not sparql or not json1) and retries > 0:
 			sparql = getURL(url=url)
 			json1 = loadSPARQL(sparql=sparql)
 			time.sleep(60)
 			retries -= 1
-        
-        rows = []
-        for result in json1['results']['bindings']:
-            q = 'item' in result and result['item']['value'].split('/entity/')[1] or ''
-            if not q:
-                continue
-            itemLabel = 'itemLabel' in result and result['itemLabel']['value'] or q
-            itemDescription = 'itemDescription' in result and result['itemDescription']['value'] or ''
-            causeLabel = 'causeLabel' in result and result['causeLabel']['value'] or ''
-            birthdate = 'birthdate' in result and result['birthdate']['value'].split('T')[0] or ''
-            deathdate = 'deathdate' in result and result['deathdate']['value'].split('T')[0] or ''
-            website = 'website' in result and result['website']['value'] or ''
-            if not website:
-                continue
-            if website in outputlist:
-                continue #avoid duplicating row because multiple birthdates resolution (1940, 1940-02-01, etc)
-            outputlist.append(website)
-            viewer = [getArchiveDetails(url=website)]
-            row = [q, itemLabel, itemDescription, causeLabel, birthdate, deathdate, website, viewer]
-            print(row)
-            rows.append(row)
-            if len(rows) >= limit:
-                break
-        c = 1
-        rowsplain = ""
-        totaljobsize = 0
-        for row in rows:
-            q, itemLabel, itemDescription, causeLabel, birthdate, deathdate, website, viewer = row
-            viewerplain = ''
-            viewerdetailsplain = ''
-            if viewer[0][0]:
-                viewerplain = "{{saved}}"
-                viewerdetailsplain = viewer[0][1]
-            else:
-                viewerplain = "{{notsaved}}"
-                viewerdetailsplain = ''
-            totaljobsize += viewer[0][2]
-            rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
-            rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
-            #rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  ||  || ')
-            recommendedaction = '<div style="width:500px;height:20px;overflow-y:scroll;"><code>!a%s %s --explain "Deaths in %d; %s; %s; %s; %s;"</code></div>' % (re.search(r"(?im)^https?://[^/]+/[^/]+$", website) and "o" or "", website, year, itemLabel, birthdate, deathdate, itemDescription)
-            rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '| colspan=6 style="white-space: nowrap;" | %s' % (recommendedaction))
-            c += 1
-        savednum = len(re.findall(r'{{saved}}', rowsplain))
-        notsavednum = len(re.findall(r'{{notsaved}}', rowsplain))
-        output = f"""{{{{piechart|done={savednum}|total={savednum+notsavednum}}}}}
+		
+		rows = []
+		for result in json1['results']['bindings']:
+			q = 'item' in result and result['item']['value'].split('/entity/')[1] or ''
+			if not q:
+				continue
+			itemLabel = 'itemLabel' in result and result['itemLabel']['value'] or q
+			itemDescription = 'itemDescription' in result and result['itemDescription']['value'] or ''
+			causeLabel = 'causeLabel' in result and result['causeLabel']['value'] or ''
+			birthdate = 'birthdate' in result and result['birthdate']['value'].split('T')[0] or ''
+			deathdate = 'deathdate' in result and result['deathdate']['value'].split('T')[0] or ''
+			website = 'website' in result and result['website']['value'] or ''
+			if not website:
+				continue
+			if website in outputlist:
+				continue #avoid duplicating row because multiple birthdates resolution (1940, 1940-02-01, etc)
+			outputlist.append(website)
+			viewer = [getArchiveDetails(url=website)]
+			row = [q, itemLabel, itemDescription, causeLabel, birthdate, deathdate, website, viewer]
+			print(row)
+			rows.append(row)
+			if len(rows) >= limit:
+				break
+		c = 1
+		rowsplain = ""
+		totaljobsize = 0
+		for row in rows:
+			q, itemLabel, itemDescription, causeLabel, birthdate, deathdate, website, viewer = row
+			viewerplain = ''
+			viewerdetailsplain = ''
+			if viewer[0][0]:
+				viewerplain = "{{saved}}"
+				viewerdetailsplain = viewer[0][1]
+			else:
+				viewerplain = "{{notsaved}}"
+				viewerdetailsplain = ''
+			totaljobsize += viewer[0][2]
+			rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
+			rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
+			#rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  ||  || ')
+			recommendedaction = '<div style="width:500px;height:20px;overflow-y:scroll;"><code>!a%s %s --explain "Deaths in %d; %s; %s; %s; %s;"</code></div>' % (re.search(r"(?im)^https?://[^/]+/[^/]+$", website) and "o" or "", website, year, itemLabel, birthdate, deathdate, itemDescription)
+			rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '| colspan=6 style="white-space: nowrap;" | %s' % (recommendedaction))
+			c += 1
+		savednum = len(re.findall(r'{{saved}}', rowsplain))
+		notsavednum = len(re.findall(r'{{notsaved}}', rowsplain))
+		output = f"""{{{{piechart|done={savednum}|total={savednum+notsavednum}}}}}
 This page is based on Wikipedia articles in '''[[:wikipedia:en:Category:{year} deaths|Category:{year} deaths]]'''. The websites for these entities could vanish in the foreseable future.
 
 * '''Statistics''': {{{{saved}}}} ({savednum}){{{{·}}}} {{{{notsaved}}}} ({notsavednum}){{{{·}}}} Total size ({convertsize(b=totaljobsize)})
@@ -133,34 +133,34 @@ Do not edit this page, it is automatically updated by bot. There is a [https://w
 {{{{deathwatch}}}}
 
 [[Category:Archive Team]]"""
-        print(output)
-        
-        page = pywikibot.Page(atsite, "Deaths in %s" % (year))
-        if len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)) or \
-            len(re.findall(r'{{notsaved}}', page.text)) != len(re.findall(r'{{notsaved}}', output)):
-            pywikibot.showDiff(page.text, output)
-            page.text = output
-            try:
-                page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
-            except:
-                print("Error while saving...")
-        else:
-            print("No changes needed in", page.title())
-        
-        outputlist.sort()
-        outputlist = '\n'.join(outputlist)
-        pagelist = pywikibot.Page(atsite, "Deaths in %s/list" % (year))
-        if pagelist.text != outputlist:
-            pywikibot.showDiff(pagelist.text, outputlist)
-            pagelist.text = outputlist
-            try:
-                pagelist.save("BOT - Updating list")
-            except:
-                print("Error while saving...")
-        else:
-            print("No changes needed in", pagelist.title())
-    
-    cleanArchiveBotCache()
+		print(output)
+		
+		page = pywikibot.Page(atsite, "Deaths in %s" % (year))
+		if len(re.findall(r'{{saved}}', page.text)) != len(re.findall(r'{{saved}}', output)) or \
+			len(re.findall(r'{{notsaved}}', page.text)) != len(re.findall(r'{{notsaved}}', output)):
+			pywikibot.showDiff(page.text, output)
+			page.text = output
+			try:
+				page.save("BOT - Updating page: {{saved}} (%s), {{notsaved}} (%s), Total size (%s)" % (len(re.findall(r'{{saved}}', rowsplain)), len(re.findall(r'{{notsaved}}', rowsplain)), convertsize(b=totaljobsize)))
+			except:
+				print("Error while saving...")
+		else:
+			print("No changes needed in", page.title())
+		
+		outputlist.sort()
+		outputlist = '\n'.join(outputlist)
+		pagelist = pywikibot.Page(atsite, "Deaths in %s/list" % (year))
+		if pagelist.text != outputlist:
+			pywikibot.showDiff(pagelist.text, outputlist)
+			pagelist.text = outputlist
+			try:
+				pagelist.save("BOT - Updating list")
+			except:
+				print("Error while saving...")
+		else:
+			print("No changes needed in", pagelist.title())
+	
+	cleanArchiveBotCache()
 
 if __name__ == '__main__':
-    main()
+	main()
