@@ -34,7 +34,7 @@ def main():
     page.text = "test"
     page.save("BOT - test")
     
-    year1 = 2000
+    year1 = 2017
     year2 = datetime.datetime.now().year
     if len(sys.argv) >= 2:
         year1 = int(sys.argv[1])
@@ -64,8 +64,14 @@ def main():
         url = 'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query=%s' % (urllib.parse.quote(query))
         url = '%s&format=json' % (url)
         print("Loading...", url)
-        sparql = getURL(url=url)
-        json1 = loadSPARQL(sparql=sparql)
+        sparql = ""
+        json1 = ""
+        retries = 10
+        while (not sparql or not json1) and retries > 0:
+			sparql = getURL(url=url)
+			json1 = loadSPARQL(sparql=sparql)
+			time.sleep(60)
+			retries -= 1
         
         rows = []
         for result in json1['results']['bindings']:
@@ -106,7 +112,7 @@ def main():
             rowspan = len(re.findall(r'\|-', viewerdetailsplain))+1
             rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
             #rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  ||  || ')
-            recommendedaction = '<code>!a%s %s --explain "Deaths in %d"</code>' % (re.search(r"(?im)^https?://[^/]+/[^/]+$", website) and "o" or "", website, year)
+            recommendedaction = '<div style="width:500px;height:20px;overflow-y:scroll;"><code>!a%s %s --explain "Deaths in %d; %s; %s; %s; %s;"</code></div>' % (re.search(r"(?im)^https?://[^/]+/[^/]+$", website) and "o" or "", website, year, itemLabel, birthdate, deathdate, itemDescription)
             rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '| colspan=6 style="white-space: nowrap;" | %s' % (recommendedaction))
             c += 1
         savednum = len(re.findall(r'{{saved}}', rowsplain))
