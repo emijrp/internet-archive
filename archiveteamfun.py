@@ -302,7 +302,7 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
     viewerurl = 'https://archive.fart.website/archivebot/viewer/?q=' + url
     origdomain = url.split('://')[1].split('/')[0]
     origdomain2 = re.sub(r'(?im)^(www\d*)\.', '.', origdomain)
-    rawdomains = getURL(url=viewerurl, cache=True)
+    rawdomains = getURL(url=viewerurl, cache=False)
     domains = list(set(re.findall(r"(?im)/archivebot/viewer/domain/([^<>\"]+)", rawdomains)))
     if not domains: #no results for this url, remove cache
         removeFromArchivebotCache(url=viewerurl)
