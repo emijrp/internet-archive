@@ -34,7 +34,7 @@ def main():
 	page.text = "test"
 	page.save("BOT - test")
 	
-	year1 = 2017
+	year1 = 2000
 	year2 = datetime.datetime.now().year
 	if len(sys.argv) >= 2:
 		year1 = int(sys.argv[1])
@@ -42,7 +42,7 @@ def main():
 	
 	start = ''
 	years = range(year1, year2+1) 
-	limit = 1000
+	limit = 2500
 	
 	for year in years:
 		outputlist = []
