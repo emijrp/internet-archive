@@ -286,16 +286,16 @@ def genJobDetails(tool='', domainlink='', joburl='', jobdate='', jobsize='', job
     jobdetails = ""
     if type(jobsize) is int:
         if jobsize < 1024:
-            jobdetails = "| %s || %s || %s || %s || data-sort-value=%d | {{red|%s}} || data-sort-value=%s | %s" % (tool, domainlink, joburl, jobdate, jobsize, convertsize(b=jobsize), jobobjects.split(' ')[0], jobobjects)
+            jobdetails = '| style="white-space: nowrap;" | %s || %s || %s || %s || data-sort-value=%d | {{red|%s}} || data-sort-value=%s | %s' % (tool, domainlink, joburl, jobdate, jobsize, convertsize(b=jobsize), jobobjects.split(' ')[0], jobobjects)
         else:
             jobcolor = 'green'
             if jobaborted:
                 jobcolor = 'orange'
             if jobproblem:
                 jobcolor = 'purple'
-            jobdetails = "| %s || %s || %s || %s || data-sort-value=%d | {{%s|%s}} || data-sort-value=%s | %s" % (tool, domainlink, joburl, jobdate, jobsize, jobcolor, convertsize(b=jobsize), jobobjects.split(' ')[0], jobobjects)
+            jobdetails = '| style="white-space: nowrap;" | %s || %s || %s || %s || data-sort-value=%d | {{%s|%s}} || data-sort-value=%s | %s' % (tool, domainlink, joburl, jobdate, jobsize, jobcolor, convertsize(b=jobsize), jobobjects.split(' ')[0], jobobjects)
     else:
-        jobdetails = "| %s || %s || %s || %s || data-sort-value=0 | %s || data-sort-value=%s | %s" % (tool, domainlink, joburl, jobdate, convertsize(b=jobsize), jobobjects.split(' ')[0], jobobjects)
+        jobdetails = '| style="white-space: nowrap;" | %s || %s || %s || %s || data-sort-value=0 | %s || data-sort-value=%s | %s' % (tool, domainlink, joburl, jobdate, convertsize(b=jobsize), jobobjects.split(' ')[0], jobobjects)
     return jobdetails
 
 def getArchiveDetailsArchivebot(url='', singleurl=False):
