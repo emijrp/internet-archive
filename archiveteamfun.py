@@ -284,6 +284,8 @@ def loadSPARQL(sparql=''):
 
 def genJobDetails(tool='', domainlink='', joburl='', jobdate='', jobsize='', jobobjects='', jobaborted=False, jobproblem=False):
     jobdetails = ""
+    domainlink = '-' #remove to avoid show direct link
+    joburl = '-' #remove to avoid show direct link
     if type(jobsize) is int:
         if jobsize < 1024:
             jobdetails = '| style="white-space: nowrap;" | %s || %s || %s || %s || data-sort-value=%d | {{red|%s}} || data-sort-value=%s | %s' % (tool, domainlink, joburl, jobdate, jobsize, convertsize(b=jobsize), jobobjects.split(' ')[0], jobobjects)
