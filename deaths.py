@@ -113,7 +113,7 @@ def main():
 			rowspanplain = rowspan>1 and 'rowspan=%d | ' % (rowspan) or ''
 			#rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, causeLabel, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '|  ||  ||  ||  ||  || ')
 			recommendedaction = '<div style="width:500px;height:20px;overflow-y:scroll;"><code>!a%s %s --explain "Deaths in %d; %s; %s; %s; %s;"</code></div>' % (re.search(r"(?im)^https?://[^/]+/[^/]+$", website) and "o" or "", website, year, itemLabel, birthdate, deathdate, itemDescription)
-			rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, website, rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '| colspan=6 style="white-space: nowrap;" | %s' % (recommendedaction))
+			rowsplain += "\n|-\n| %s'''[[:wikipedia:d:%s|%s]]''' || %s%s || %s%s || %s%s || %s%s || %s%s\n%s " % (rowspanplain, q, itemLabel, rowspanplain, itemDescription, rowspanplain, birthdate, rowspanplain, deathdate, rowspanplain, len(website) <= 50 and website or ("[%s]" % (website)), rowspanplain, viewerplain and viewerplain or ' ', viewerdetailsplain and viewerdetailsplain or '| colspan=6 style="white-space: nowrap;" | %s' % (recommendedaction))
 			c += 1
 		savednum = len(re.findall(r'{{saved}}', rowsplain))
 		notsavednum = len(re.findall(r'{{notsaved}}', rowsplain))
