@@ -284,8 +284,6 @@ def loadSPARQL(sparql=''):
 
 def genJobDetails(tool='', domainlink='', joburl='', jobdate='', jobsize='', jobobjects='', jobaborted=False, jobproblem=False):
     jobdetails = ""
-    domainlink = '-' #remove to avoid show direct link
-    joburl = '-' #remove to avoid show direct link
     if type(jobsize) is int:
         if jobsize < 1024:
             jobdetails = '| style="white-space: nowrap;" | %s || %s || %s || %s || data-sort-value=%d | {{red|%s}} || data-sort-value=%s | %s' % (tool, domainlink, joburl, jobdate, jobsize, convertsize(b=jobsize), jobobjects.split(' ')[0], jobobjects)
@@ -371,7 +369,8 @@ def getArchiveDetailsArchivebot(url='', singleurl=False):
                     jobsize = sum([jobdatetime == '%s-%s' % (warc[1], warc[2]) and int(warc[3]) or 0 for warc in warcs])
                     if jobdate and jobdate != 'nodate':
                         jobdate = '%s-%s-%s' % (jobdate[0:4], jobdate[4:6], jobdate[6:8])
-                    jobdetails = genJobDetails(tool=toolb, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobidtruncated, jobidtruncated), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa), jobaborted=jobaborted, jobproblem=jobproblem)
+                    #jobdetails = genJobDetails(tool=toolb, domainlink="[https://archive.fart.website/archivebot/viewer/domain/%s %s]" % (domain, domain), joburl="[https://archive.fart.website/archivebot/viewer/job/%s %s]" % (jobidtruncated, jobidtruncated), jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa), jobaborted=jobaborted, jobproblem=jobproblem)
+                    jobdetails = genJobDetails(tool=toolb, domainlink=domain, joburl=jobidtruncated, jobdate=jobdate, jobsize=jobsize, jobobjects="%d warcs" % (warcsnometa), jobaborted=jobaborted, jobproblem=jobproblem)
                     totaljobsize += jobsize
                     details.append(jobdetails)
     return details, totaljobsize
